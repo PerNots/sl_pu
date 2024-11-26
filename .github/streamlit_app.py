@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# File to store push-up logs
+# File to store push-up logs - where is this?
 LOG_FILE = "pushup_log.csv"
 
 # Title for the app
