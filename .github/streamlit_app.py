@@ -3,12 +3,12 @@ import pandas as pd
 from datetime import datetime
 import os
 import tempfile
+
+os.makedirs("data", exist_ok=True)
+
 LOG_FILE = tempfile.gettempdir() + "/pushup_log.csv"
 LOG_FILE = "data/pushup_log.csv"
-#mkdir data
-
 # File to store push-up logs
-LOG_FILE = "pushup_log.csv"
 
 # Debugging: Show where the file is saved
 st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
