@@ -5,7 +5,7 @@ import os
 import tempfile
 LOG_FILE = tempfile.gettempdir() + "/pushup_log.csv"
 LOG_FILE = "data/pushup_log.csv"
-mkdir data
+#mkdir data
 
 # File to store push-up logs
 LOG_FILE = "pushup_log.csv"
