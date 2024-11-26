@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import os
 
-# File to store push-up logs - where is this?
+# File to store push-up logs
 LOG_FILE = "pushup_log.csv"
+
+# Debugging: Show where the file is saved
+st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
 
 # Title for the app
 st.title("Push-Up Tracker")
@@ -21,15 +25,18 @@ if st.button("Log Push-Ups"):
 
     # Try to append to the existing log file or create a new one
     try:
-        # Read the existing log file
-        existing_log = pd.read_csv(LOG_FILE)
-        # Append the new entry
-        updated_log = pd.concat([existing_log, new_entry], ignore_index=True)
-    except FileNotFoundError:
-        # If the file doesn't exist, create it
-        updated_log = new_entry
+        if os.path.exists(LOG_FILE):
+            # Read the existing log file
+            existing_log = pd.read_csv(LOG_FILE)
+            # Append the new entry
+            updated_log = pd.concat([existing_log, new_entry], ignore_index=True)
+        else:
+            # If the file doesn't exist, create it
+            updated_log = new_entry
 
-    # Save the updated log to the file
-    updated_log.to_csv(LOG_FILE, index=False)
+        # Save the updated log to the file
+        updated_log.to_csv(LOG_FILE, index=False)
 
-    st.success(f"Logged {pushups} push-ups at {timestamp}!")
+        st.success(f"Logged {pushups} push-ups at {timestamp}!")
+    except Exception as e:
+        st.error(f"Error writing to file: {e}")
