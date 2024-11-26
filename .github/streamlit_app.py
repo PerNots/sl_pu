@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import tempfile
+LOG_FILE = tempfile.gettempdir() + "/pushup_log.csv"
+LOG_FILE = "data/pushup_log.csv"
+mkdir data
 
 # File to store push-up logs
 LOG_FILE = "pushup_log.csv"
