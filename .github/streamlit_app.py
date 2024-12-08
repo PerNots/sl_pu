@@ -19,10 +19,23 @@ st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
 # Title for the app
 st.title("Push-Up Tracker")
 
-# User Authentication
-st.subheader("User Login")
-username = st.selectbox("Select your username:", options=list(USER_DATABASE.keys()))  # Drop-down menu for usernames
-pincode = st.text_input("Enter your PIN code:", type="password")
+# Side-by-side layout for username and PIN code
+col1, col2 = st.columns([1, 1])  # Adjust column ratios as needed
+
+# User selection dropdown
+with col1:
+    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
+
+# PIN code input field
+with col2:
+    pincode = st.text_input("Enter PIN Code", type="password")
+
+# Validate PIN code
+if st.button("Login"):
+    if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+        st.success(f"Welcome, {username}!")
+    else:
+        st.error("Invalid username or PIN code. Please try again.")
 
 if username and pincode:
     if USER_DATABASE[username] == pincode:
