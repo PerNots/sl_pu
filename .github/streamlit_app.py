@@ -38,18 +38,21 @@ if year == "2025":
 st.title("")
 
 # Side-by-side layout for username and PIN code
-col1, col2 = st.columns([1, 1])  # Adjust column ratios as needed
+col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
 
 # User selection dropdown
 with col1:
-    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
+    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
 
 # PIN code input field
 with col2:
-    pincode = st.text_input("Enter PIN Code", type="password")
+    pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
+
+with col3:
+    login = st.button("Login",use_container_width=True)
 
 # Validate PIN code
-if st.button("Login"):
+if login:
     if username in USER_DATABASE and pincode == USER_DATABASE[username]:
         st.success(f"Welcome, {username}!")
     else:
@@ -62,7 +65,7 @@ if username and pincode:
         # Create a form to group the input and button together
         with st.form("log_pushups_form"):
             # Create two columns to place the input field and button side by side
-            col1, col2 = st.columns([3, 1])  # Adjust the width ratio as needed
+            col1, col2 = st.columns([3, 1],vertical_alignment="bottom")  # Adjust the width ratio as needed
 
             with col1:
                 # Input field for the number of push-ups
@@ -71,20 +74,7 @@ if username and pincode:
             with col2:
                 # Submit button inside the form and aligned with the bottom of the input
                 submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
-
-            # Adjust alignment by adding custom CSS
-            st.markdown(
-                """
-                <style>
-                    .stButton>button {
-                        display: block;
-                        margin-top: auto;
-                        margin-bottom: 0;
-                    }
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
+                # Adjust alignment by adding custom CSS
 
             # If the button is pressed or Enter is hit, log the data
             if submit_button:
@@ -113,6 +103,7 @@ if username and pincode:
                     st.error(f"Error writing to file: {e}")
 
         # Display the accumulated push-ups graph
+        st.subheader("")
         st.subheader("Accumulated Push-Ups Over Time")
 
         if os.path.exists(LOG_FILE):
@@ -203,15 +194,19 @@ if username and pincode:
         st.error("Invalid PIN code. Please try again.")
 
 
+"""
+Happy pushing. Stefan.
+"""
 
-'''
+
+
 # TODO:
-- make colors static so that they don't change when users are selected in different orders
-- add all the graphs from the googlesheet
-- add specific timestamps to choose from e.g. "2022, 2023, last three months, current month, everything, custom range"
-- add leaderboard displaying the top three of differnt things
-    - top three days by "most PU/day"
-    - top most pushups in a day
-- time-format issues
-- make it possible to delete entries if they were made by mistake (only by the user who entered them)
-'''
+# - make colors static so that they don't change when users are selected in different orders
+# - add all the graphs from the googlesheet
+# - add specific timestamps to choose from e.g. "2022, 2023, last three months, current month, everything, custom range"
+# - add leaderboard displaying the top three of differnt things
+#     - top three days by "most PU/day"
+#     - top most pushups in a day
+# - time-format issues
+# - make it possible to delete entries if they were made by mistake (only by the user who entered them)
+
