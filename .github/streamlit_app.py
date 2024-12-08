@@ -35,8 +35,6 @@ if year == "2025":
         """,
         unsafe_allow_html=True
     )
-
-    st.markdown(")
 st.title("")
 
 # Side-by-side layout for username and PIN code
