@@ -11,10 +11,7 @@ os.makedirs("data", exist_ok=True)
 LOG_FILE = "data/pushup_log.csv"
 
 # Dictionary of users and their PIN codes
-USER_DATABASE = {
-    "Nick": "1234",
-    "Stefan": "5678"
-}
+USER_DATABASE = st.secrets["user_database"]
 
 # Debugging: Show where the file is saved
 st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
