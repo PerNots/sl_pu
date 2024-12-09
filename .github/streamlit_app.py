@@ -43,7 +43,8 @@ def display_accumulated_pushups(log_data, user_selection):
                     x="Timestamp:T",
                     y="Accumulated Pushups:Q",
                     color="User:N",  # Different colors for each user
-                    tooltip=["Timestamp:T", "Accumulated Pushups:Q", "User:N"]
+                    tooltip=["Timestamp:T", "Accumulated Pushups:Q", "User:N"],
+                    size=alt.value(2)
                 ).properties(
                     width=800,
                     height=400,
@@ -247,9 +248,9 @@ if username and pincode:
     else:
         st.error("Invalid PIN code. Please try again.")
 
-
+st.subheader("")
 """
-Happy pushing. Stefan.
+💟 Happy pushing. Stefan.
 """
 
 
