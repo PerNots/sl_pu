@@ -166,17 +166,17 @@ if username and pincode:
                 if user_selection:
                     filtered_data = log_data[log_data['User'].isin(user_selection)]
 
-                    # Plot the original time-series data for the selected users
+                    # Plot the original time-series data for the selected users with interactive zoom
                     line_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
-                        x="Timestamp:T",
-                        y="Pushups:Q",
+                        x=alt.X("Timestamp:T", title="Time"),
+                        y=alt.Y("Pushups:Q", title="Push-Ups"),
                         color="User:N",  # Different colors for each user
                         tooltip=["Timestamp:T", "Pushups:Q", "User:N"]
                     ).properties(
                         width=800,
                         height=400,
                         title="Push-Ups Over Time (Selected Users)"
-                    )
+                    ).interactive()  # Enable zoom and pan
 
                     st.altair_chart(line_chart, use_container_width=True)
                 else:
@@ -186,6 +186,7 @@ if username and pincode:
                 st.error(f"Error reading or plotting data: {e}")
         else:
             st.write("No data to display yet.")
+
 
 
 
