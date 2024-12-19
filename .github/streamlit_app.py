@@ -6,11 +6,9 @@ import altair as alt
 from datetime import datetime, timedelta
 import time
 
-'''
-git add .
-git commit -m "Added Table with last 5 entries"
-git push origin main
-'''
+# git add .
+# git commit -m "Added Table with last 5 entries"
+# git push origin main
 
 
 # Ensure the data directory exists
