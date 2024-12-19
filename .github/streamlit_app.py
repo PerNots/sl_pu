@@ -6,6 +6,13 @@ import altair as alt
 from datetime import datetime, timedelta
 import time
 
+'''
+git add .
+git commit -m "Added Table with last 5 entries"
+git push origin main
+'''
+
+
 # Ensure the data directory exists
 os.makedirs("data", exist_ok=True)
 
@@ -57,6 +64,29 @@ def display_accumulated_pushups(log_data, user_selection):
 
         except Exception as e:
             st.error(f"Error reading or plotting accumulated data: {e}")
+
+# last five entries into database
+def display_last_five_entries(log_data):
+    try:
+        # Convert the Timestamp column to datetime format if it's not already
+        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+
+        # Extract the Date and Time from the Timestamp
+        log_data['Date'] = log_data['Timestamp'].dt.date
+        log_data['Time'] = log_data['Timestamp'].dt.time
+
+        # Select the relevant columns and get the last 5 entries
+        last_five_entries = log_data[['Date', 'Time', 'User', 'Pushups']].tail(5)
+
+        # Convert to list of dictionaries to remove the index
+        data_no_index = last_five_entries.to_dict(orient="records")
+
+        # Display the last five entries without the index
+        #st.subheader("Last Five Entries")
+        st.table(data_no_index)
+
+    except Exception as e:
+        st.error(f"Error displaying the last five entries: {e}")
 
 
 # Title for the app
@@ -191,7 +221,9 @@ if username and pincode:
                     max_value=log_data['Timestamp'].max().date()
                 )
         
-
+        st.subheader("")
+        st.header("Last 5 entries")
+        display_last_five_entries(log_data)
         # Display the accumulated push-ups graph
         st.subheader("")
         st.header("Visualization")
