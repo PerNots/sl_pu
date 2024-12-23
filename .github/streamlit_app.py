@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
-SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a,json'  # Path to your downloaded JSON key
+SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to your downloaded JSON key
 
 # Authenticate with the service account
 credentials = service_account.Credentials.from_service_account_file(
@@ -21,11 +21,6 @@ credentials = service_account.Credentials.from_service_account_file(
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
-# Example: Upload a file to Google Drive
-file_metadata = {'name': 'logfile.csv'}
-media = MediaFileUpload('logfile.csv', mimetype='text/csv')
-file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-print(f"File ID: {file.get('id')}")
 
 
 
@@ -203,7 +198,7 @@ if username and pincode:
                     time.sleep(2)
                     # Clear the message
                     success_message.empty()
-                    
+
                 except Exception as e:
                     st.error(f"Error writing to file: {e}")
 
