@@ -270,9 +270,61 @@ if username and pincode:
         else:
             st.write("No data to display yet.")
 
+        st.subheader("Stuff that will change (soon)")
+        '''
+        - make date-filter work
+        - handle different timezones via user-database, will timezones register locally or globally?
+        - add visualizations that were established in googlesheet in the last years
+        - allow users to set personal goals for the year
+        - move last years data to a different part of the site ("legacy"), will also adjust the user filter to not be too populated
+        - might add different disciplines (squats or pull-ups or w/e)
+        - diferentiate different types of push-ups
+        - establish suggestion tab that let's you send your own suggestions on what to change
+        '''
 
+        # User Suggestions
+        # Path to the suggestions file
+        SUGGESTIONS_FILE = "data/suggestions.csv"
 
+        # Ensure the data folder exists
+        os.makedirs("data", exist_ok=True)
 
+        # Form for user suggestions
+        with st.form("suggestion_form"):
+            st.write("Have another idea for improvement?")
+
+            # Text area for the suggestion (username is automatically logged)
+            suggestion = st.text_area("Your Suggestion", "")
+            submit_suggestion = st.form_submit_button("Submit Suggestion")
+
+            if submit_suggestion:
+                if suggestion.strip():  # Ensure the suggestion is not empty
+                    # Create a DataFrame for the new suggestion
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    new_suggestion = pd.DataFrame({
+                        "Timestamp": [timestamp],
+                        "Username": [username],  # Automatically log the username
+                        "Suggestion": [suggestion.strip()]
+                    })
+
+                    # Try appending or creating the suggestions file
+                    try:
+                        if os.path.exists(SUGGESTIONS_FILE):
+                            # Append to existing suggestions
+                            existing_suggestions = pd.read_csv(SUGGESTIONS_FILE)
+                            updated_suggestions = pd.concat([existing_suggestions, new_suggestion], ignore_index=True)
+                        else:
+                            # Create a new suggestions file
+                            updated_suggestions = new_suggestion
+
+                        # Save updated suggestions
+                        updated_suggestions.to_csv(SUGGESTIONS_FILE, index=False)
+
+                        st.success("Thank you for your suggestion!")
+                    except Exception as e:
+                        st.error(f"Error saving your suggestion: {e}")
+                else:
+                    st.warning("Please write a suggestion before submitting.")
 
 
     else:
