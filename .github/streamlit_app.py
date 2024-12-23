@@ -6,6 +6,29 @@ import altair as alt
 from datetime import datetime, timedelta
 import time
 
+# For syncing to GoogleDrive
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a,json'  # Path to your downloaded JSON key
+
+# Authenticate with the service account
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+# Build the Google Drive API client
+drive_service = build('drive', 'v3', credentials=credentials)
+
+# Example: Upload a file to Google Drive
+file_metadata = {'name': 'logfile.csv'}
+media = MediaFileUpload('logfile.csv', mimetype='text/csv')
+file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+print(f"File ID: {file.get('id')}")
+
+
+
 # git add .
 # git commit -m "Added Table with last 5 entries"
 # git push origin main
@@ -15,18 +38,20 @@ import time
 os.makedirs("data", exist_ok=True)
 
 # File to store push-up logs
-LOG_FILE = "data/pushup_log.csv"
+LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
 if os.path.exists(LOG_FILE):
     log_data = pd.read_csv(LOG_FILE)
 else:
     st.write("No data file.")
 log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+
 # Dictionary of users and their PIN codes
 USER_DATABASE = st.secrets["user_database"]
 
 # Debugging: Show where the file is saved
 #st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
 
+# graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
         try:
             # Sort the data by Timestamp to ensure proper accumulation
@@ -89,10 +114,10 @@ def display_last_five_entries(log_data):
 
 # Title for the app
 st.title("Push-Up Tracker.")
+
+# NewYear's gimmick
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
-# Check if the slider is set to "2025"
-if year == "2025":
-    # Display firework smileys with a custom font size
+if year == "2025": # Check if the slider is set to "2025"
     st.markdown(
         """
         <style>
@@ -108,27 +133,26 @@ if year == "2025":
     )
 st.title("")
 
+# Login-part
 # Side-by-side layout for username and PIN code
 col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
-
 # User selection dropdown
 with col1:
     username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
-
 # PIN code input field
 with col2:
     pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
-
 with col3:
     login = st.button("Login",use_container_width=True)
 
-# Validate PIN code
+# Login Validation
 if login:
     if username in USER_DATABASE and pincode == USER_DATABASE[username]:
         st.success(f"Welcome, {username}!")
     else:
         st.error("Invalid username or PIN code. Please try again.")
 
+# Main content that is displayed when login was successfull
 if username and pincode:
     if USER_DATABASE[username] == pincode:
         st.success(f"Welcome, {username}!")
@@ -137,11 +161,9 @@ if username and pincode:
         with st.form("log_pushups_form"):
             # Create two columns to place the input field and button side by side
             col1, col2 = st.columns([3, 1],vertical_alignment="bottom")  # Adjust the width ratio as needed
-
             with col1:
                 # Input field for the number of push-ups
                 pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1)
-
             with col2:
                 # Submit button inside the form and aligned with the bottom of the input
                 submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
@@ -150,7 +172,6 @@ if username and pincode:
             if submit_button:
                 # Get the current timestamp
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
                 # Create a DataFrame for the current entry
                 new_entry = pd.DataFrame({"Timestamp": [timestamp], "Pushups": [pushups], "User": [username]})
 
@@ -168,16 +189,21 @@ if username and pincode:
                     # Save the updated log to the file
                     updated_log.to_csv(LOG_FILE, index=False)
 
-                    #st.success(f"Logged {pushups} push-ups at {timestamp}!")
-                    success_message = st.empty()  # Create a placeholder
-                    timestamp = datetime.now()
-                    # Format the timestamp without seconds
+                    # Upload the updated log file to Google Drive
+                    file_metadata = {'name': 'pushup_log.csv'}
+                    media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
+                    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                    st.success(f"Logged {pushups} push-ups at {timestamp}! (File ID: {file.get('id')})")
+
+                    # Placeholder success message
+                    success_message = st.empty()
                     formatted_timestamp = timestamp.strftime('%Y-%m-%d %H:%M')
-                    # Use the formatted timestamp in your success message
-                    success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")                    # Wait for a few seconds before clearing the message
+                    success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
+                    
                     time.sleep(2)
                     # Clear the message
                     success_message.empty()
+                    
                 except Exception as e:
                     st.error(f"Error writing to file: {e}")
 
@@ -273,6 +299,7 @@ if username and pincode:
         st.subheader("Stuff that will change (soon)")
         '''
         - make date-filter work
+        - fix zooming for figures
         - handle different timezones via user-database, will timezones register locally or globally?
         - add visualizations that were established in googlesheet in the last years
         - allow users to set personal goals for the year

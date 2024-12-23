@@ -1,3 +1,4 @@
 # Ignore Streamlit secrets
 .streamlit/secrets.toml
 .streamlit/
+data/
