@@ -15,6 +15,8 @@ SCOPES = ['https://www.googleapis.com/auth/drive.file']
 SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to your downloaded JSON key
 
 SERVICE_ACCOUNT_KEY = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY")
+if not SERVICE_ACCOUNT_KEY:
+    raise ValueError("Environment variable 'GOOGLE_SERVICE_ACCOUNT_KEY' is not set.")
 key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 
 # Authenticate with the service account
