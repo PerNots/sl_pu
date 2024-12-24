@@ -14,6 +14,9 @@ from googleapiclient.http import MediaFileUpload
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to your downloaded JSON key
 
+SERVICE_ACCOUNT_KEY = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY")
+key_dict = json.loads(SERVICE_ACCOUNT_KEY)
+
 # Authenticate with the service account
 credentials = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -293,12 +296,14 @@ if username and pincode:
         '''
         - make date-filter work
         - fix zooming for figures
+        - add optional comments to push-up addition
+        - allow deletion of last few own activities by user
         - handle different timezones via user-database, will timezones register locally or globally?
         - add visualizations that were established in googlesheet in the last years
         - allow users to set personal goals for the year
         - move last years data to a different part of the site ("legacy"), will also adjust the user filter to not be too populated
         - might add different disciplines (squats or pull-ups or w/e)
-        - diferentiate different types of push-ups
+        - differentiate types of push-ups
         - establish suggestion tab that let's you send your own suggestions on what to change
         '''
 
