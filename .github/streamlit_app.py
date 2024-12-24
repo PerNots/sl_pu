@@ -21,7 +21,7 @@ key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 
 # Authenticate with the service account
 credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    key_dict, scopes=SCOPES)
 
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
