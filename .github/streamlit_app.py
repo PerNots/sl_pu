@@ -14,15 +14,14 @@ from googleapiclient.http import MediaFileUpload
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to your downloaded JSON key
 
-SERVICE_ACCOUNT_KEY = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY")
-if not SERVICE_ACCOUNT_KEY:
-    raise ValueError("Environment variable 'GOOGLE_SERVICE_ACCOUNT_KEY' is not set.")
+# Load service account key from secrets
+SERVICE_ACCOUNT_KEY = st.secrets["service_account"]["key"]
+st.subheader(SERVICE_ACCOUNT_KEY)
 key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 
 # Authenticate with the service account
-credentials = service_account.Credentials.from_service_account_info(
-    key_dict, scopes=SCOPES
-)
+from google.oauth2 import service_account
+credentials = service_account.Credentials.from_service_account_info(key_dict)
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
