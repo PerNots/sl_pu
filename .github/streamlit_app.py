@@ -22,8 +22,6 @@ credentials = service_account.Credentials.from_service_account_file(
 drive_service = build('drive', 'v3', credentials=credentials)
 
 
-
-
 # git add .
 # git commit -m "Added Table with last 5 entries"
 # git push origin main
