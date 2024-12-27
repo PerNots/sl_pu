@@ -16,7 +16,6 @@ SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to you
 
 # Load service account key from secrets
 SERVICE_ACCOUNT_KEY = st.secrets["service_account"]["key"]
-st.subheader(SERVICE_ACCOUNT_KEY)
 key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 
 # Authenticate with the service account
@@ -190,11 +189,12 @@ if username and pincode:
                     file_metadata = {'name': 'pushup_log.csv'}
                     media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
                     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                    # TODO: remove this message again, success-message can be found below
                     st.success(f"Logged {pushups} push-ups at {timestamp}! (File ID: {file.get('id')})")
 
                     # Placeholder success message
                     success_message = st.empty()
-                    formatted_timestamp = timestamp.strftime('%Y-%m-%d %H:%M')
+                    formatted_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
                     success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
                     
                     time.sleep(2)
