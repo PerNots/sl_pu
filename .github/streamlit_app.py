@@ -1,3 +1,4 @@
+# Import needed (?) packages
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -6,73 +7,87 @@ import altair as alt
 from datetime import datetime, timedelta
 import time
 import json
+import io
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaFileUpload # Uploader
+from googleapiclient.http import MediaIoBaseDownload # Downloader
 
+### GOOGLE DRIVE SETUP
+# Setting the scope for the GoogleDrive API
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
-SERVICE_ACCOUNT_FILE = '.streamlit/pushup-sync-37f17b097d7a.json'  # Path to your downloaded JSON key
 
-# Load service account key from secrets
+# Load and read service account info from secrets
 SERVICE_ACCOUNT_KEY = st.secrets["service_account"]["key"]
 key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 
 # Authenticate with the service account
-from google.oauth2 import service_account
 credentials = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
+
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
 # Folder ID of the GoogleDrive folder used for synching
 FOLDER_ID = st.secrets["google_drive"]["folder_id"]
-st.subheader(FOLDER_ID)
 
-# Overview of the log-files within this project
+### OVERVIEW LOG FILES
 log_files = {
     "pushup_log.csv": "data/pushup_log.csv",
     "pushup_log_2022.csv": "data/pushup_log_2022.csv",
     "suggestions.csv": "data/suggestions.csv"
 }
 
+# Dictionary of users and their PIN codes
+USER_DATABASE = st.secrets["user_database"]
+
 # TODO: remove this, it is now stored in the log_files dictionary
 LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
 
-# Function to check if the file exists in the folder
+# Function to check if the file exists in the folder - used in push_file_to_drive()
 # TODO: Not yet used
-# TODO: Have a function to update a specific file in the GoogleDrive and have the name of the file to be updated sent to that function
-def get_file_id(file_name, service = drive_service):
-    query = f"'{FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
-    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
-    files = results.get('files', [])
-    if files:
-        return files[0]['id']  # Return the ID of the first matching file
-    return None
+def get_file_id(service, file_name, folder_id=FOLDER_ID):
+    """
+    Retrieves the file ID from Google Drive based on file name and folder.
+    :param service: Authenticated Google Drive service instance
+    :param file_name: The name of the file to retrieve
+    :param folder_id: The folder ID to check for the file
+    :return: File ID if found, None otherwise
+    """
+    query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
+    
+    try:
+        results = service.files().list(q=query, fields="files(id)").execute()
+        files = results.get('files', [])
+        if files:
+            return files[0]['id']
+        else:
+            st.error(f"File '{file_name}' not found in the specified folder.")
+            return None
+    except Exception as e:
+        st.error(f"Error retrieving file ID: {e}")
+        return None
 
 # Function to sync a file to Google Drive
 # TODO: not yet employed but will allow easy synching of log-files after they were changed
-def sync_file_to_drive(local_file_path, file_name, service = drive_service,  folder_id = FOLDER_ID):
+# TODO: local_file_path and file_name are tmi as the dict above links them together!
+def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
     """
-    Syncs a local file to Google Drive. If the file exists, it updates it; otherwise, it creates a new file.
-    :param local_file_path: Path to the local file to be synced
-    :param file_name: Name of the file in Google Drive
+    Pushes a specific local file to Google Drive. If the file exists, it updates it; otherwise, it creates a new file.
+    :param file_name: The name of the file to push (e.g., 'pushup_log.csv')
     :param service: Authenticated Google Drive service instance
     :param folder_id: The Google Drive folder ID where the file should be stored
-    :return: None
     """
-    # Helper function to check if the file exists
-    def get_file_id(service, file_name):
-        query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
-        results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
-        files = results.get('files', [])
-        if files:
-            return files[0]['id']  # Return the ID of the first matching file
-        return None
-
+    # Check if the file exists in the log_files dictionary
+    if file_name not in log_files:
+        st.error(f"File {file_name} not found in the log_files dictionary.")
+        return
+    # Get the local file path from the dictionary
+    local_file_path = log_files[file_name]
+    
     try:
-        # Check if the file already exists in the folder
+        # Check if the file already exists in Google Drive
         file_id = get_file_id(service, file_name)
-        
         if file_id:
             # Update the existing file
             media = MediaFileUpload(local_file_path, mimetype='text/csv')
@@ -91,31 +106,57 @@ def sync_file_to_drive(local_file_path, file_name, service = drive_service,  fol
     except Exception as e:
         st.error(f"Error syncing {file_name} to Google Drive: {e}")
 
+def fetch_file_from_drive(file_name, log_files, service=drive_service, folder_id=FOLDER_ID):
+    """
+    Fetches a file from Google Drive and saves it locally.
+    :param file_name: The name of the file to fetch (e.g., 'pushup_log.csv')
+    :param log_files: Dictionary with file names as keys and local paths as values
+    :param service: Authenticated Google Drive service instance
+    :param folder_id: The Google Drive folder ID where the file is stored
+    """
+    # Check if the file exists in the log_files dictionary
+    if file_name not in log_files:
+        st.error(f"File {file_name} not found in the log_files dictionary.")
+        return
 
+    # Get the local file path from the dictionary
+    local_file_path = log_files[file_name]
 
-file_metadata = {
-    'name': 'pushup_log.csv',
-    'parents': ['FOLDER_ID']  # Replace with your folder ID
-}
-media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
-file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    try:
+        # Fetch the file ID from Google Drive using the file name and folder ID
+        file_id = get_file_id(service, file_name, folder_id)
+
+        if file_id:
+            # Download the file content
+            request = service.files().get_media(fileId=file_id)
+            fh = io.FileIO(local_file_path, 'wb')
+            downloader = MediaIoBaseDownload(fh, request)
+            
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                st.write(f"Download {int(status.progress() * 100)}%.")
+            
+            st.success(f"Downloaded {file_name} to {local_file_path}")
+        else:
+            st.error(f"File {file_name} not found in Google Drive.")
+
+    except Exception as e:
+        st.error(f"Error fetching {file_name} from Google Drive: {e}")
 
 # git add .
 # git commit -m "Added Table with last 5 entries"
 # git push origin main
 
-# Ensure the data directory exists
-os.makedirs("data", exist_ok=True)
-
 # File to store push-up logs
+# TODO: This probably needs to be changed so that the files from the google drive are read in
 if os.path.exists(LOG_FILE):
     log_data = pd.read_csv(LOG_FILE)
 else:
     st.write("No data file.")
 log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
 
-# Dictionary of users and their PIN codes
-USER_DATABASE = st.secrets["user_database"]
+
 
 # Debugging: Show where the file is saved
 #st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
