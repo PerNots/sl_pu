@@ -24,17 +24,90 @@ credentials = service_account.Credentials.from_service_account_info(key_dict, sc
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
+# Folder ID of the GoogleDrive folder used for synching
+FOLDER_ID = st.secrets["google_drive"]["folder_id"]
+st.subheader(FOLDER_ID)
+
+# Overview of the log-files within this project
+log_files = {
+    "pushup_log.csv": "data/pushup_log.csv",
+    "pushup_log_2022.csv": "data/pushup_log_2022.csv",
+    "suggestions.csv": "data/suggestions.csv"
+}
+
+# TODO: remove this, it is now stored in the log_files dictionary
+LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
+
+# Function to check if the file exists in the folder
+# TODO: Not yet used
+# TODO: Have a function to update a specific file in the GoogleDrive and have the name of the file to be updated sent to that function
+def get_file_id(file_name, service = drive_service):
+    query = f"'{FOLDER_ID}' in parents and name = '{file_name}' and trashed = false"
+    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    files = results.get('files', [])
+    if files:
+        return files[0]['id']  # Return the ID of the first matching file
+    return None
+
+# Function to sync a file to Google Drive
+# TODO: not yet employed but will allow easy synching of log-files after they were changed
+def sync_file_to_drive(local_file_path, file_name, service = drive_service,  folder_id = FOLDER_ID):
+    """
+    Syncs a local file to Google Drive. If the file exists, it updates it; otherwise, it creates a new file.
+    :param local_file_path: Path to the local file to be synced
+    :param file_name: Name of the file in Google Drive
+    :param service: Authenticated Google Drive service instance
+    :param folder_id: The Google Drive folder ID where the file should be stored
+    :return: None
+    """
+    # Helper function to check if the file exists
+    def get_file_id(service, file_name):
+        query = f"'{folder_id}' in parents and name = '{file_name}' and trashed = false"
+        results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+        files = results.get('files', [])
+        if files:
+            return files[0]['id']  # Return the ID of the first matching file
+        return None
+
+    try:
+        # Check if the file already exists in the folder
+        file_id = get_file_id(service, file_name)
+        
+        if file_id:
+            # Update the existing file
+            media = MediaFileUpload(local_file_path, mimetype='text/csv')
+            updated_file = service.files().update(fileId=file_id, media_body=media).execute()
+            st.success(f"Updated existing {file_name} file (File ID: {updated_file.get('id')})")
+        else:
+            # Create a new file if it doesn't exist
+            file_metadata = {
+                'name': file_name,
+                'parents': [folder_id]
+            }
+            media = MediaFileUpload(local_file_path, mimetype='text/csv')
+            new_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            st.success(f"Created new {file_name} file (File ID: {new_file.get('id')})")
+
+    except Exception as e:
+        st.error(f"Error syncing {file_name} to Google Drive: {e}")
+
+
+
+file_metadata = {
+    'name': 'pushup_log.csv',
+    'parents': ['FOLDER_ID']  # Replace with your folder ID
+}
+media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
+file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
 # git add .
 # git commit -m "Added Table with last 5 entries"
 # git push origin main
 
-
 # Ensure the data directory exists
 os.makedirs("data", exist_ok=True)
 
 # File to store push-up logs
-LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
 if os.path.exists(LOG_FILE):
     log_data = pd.read_csv(LOG_FILE)
 else:
