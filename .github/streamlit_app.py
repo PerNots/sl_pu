@@ -386,8 +386,10 @@ if login:
 
 ### MAIN CONTENT that is displayed when login was successfull
 if username and pincode:
-    if USER_DATABASE[username] == pincode:
+    if USER_DATABASE.get(username) == pincode:
         st.success(f"Welcome, {username}!")
+        time.sleep(3)  # Wait for 3 seconds
+        st.empty()  # Clear the success message
         
         ### LOAD LOG TO BE DISPLAYED
         log_data = fetch_file_from_drive("pushup_log.csv")
