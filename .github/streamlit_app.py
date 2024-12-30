@@ -10,14 +10,13 @@ import time
 import json
 import io
 import plotly.express as px
-import gspread
+import plotly.graph_objects as go
+#import matplotlib.pyplot as plt
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-#from googleapiclient.http import MediaFileUpload # Uploader
 from googleapiclient.http import MediaIoBaseDownload # Downloader
 from googleapiclient.http import MediaIoBaseUpload
-from oauth2client.service_account import ServiceAccountCredentials
 
 ### GOOGLE DRIVE SETUP
 # TODO: maybe Drive is not needed anymore as now googlesheet takes over syncing
@@ -27,43 +26,19 @@ SCOPES = ['https://www.googleapis.com/auth/drive.file']
 # Load and read service account info from secrets
 SERVICE_ACCOUNT_KEY = st.secrets["service_account"]["key"]
 key_dict = json.loads(SERVICE_ACCOUNT_KEY)
-
 # Authenticate with the service account
 credentials = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
-
-# With googlesheet i can directly modify the cloud file without local storage
-# this will hopefully allow saving data even when the app is restarted
-#scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-#creds = ServiceAccountCredentials.from_json_keyfile_dict(key_dict, scope)
-#client = gspread.authorize(creds)
-# Open the Google Sheet (assuming it exists)
-#sheet = client.open("pushup_log").sheet1
-
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
 # Folder ID of the GoogleDrive folder used for synching
 FOLDER_ID = st.secrets["google_drive"]["folder_id"]
 
-### OVERVIEW LOG FILES
-# TODO: probably not needed, i can't use local files while app runs in cloud
-log_files = {
-    "pushup_log.csv": "data/pushup_log.csv",
-    "pushup_log_2022.csv": "data/pushup_log_2022.csv",
-    "suggestions.csv": "data/suggestions.csv"
-}
-
-# Get the data from GoogleSheets
-#data = sheet.get_all_records()
-
 # Dictionary of users and their PIN codes
 USER_DATABASE = st.secrets["user_database"]
 
-# TODO: remove this?!?, it is now stored in the log_files dictionary
-LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
-
-# Function to check if the file exists in the folder - used in push_file_to_drive()
-# TODO: Not yet used
+# Function to check if the file exists in the GoogleDrive folder - 
+# used in push_file_to_drive()
 def get_file_id(service, file_name, folder_id=FOLDER_ID):
     """
     Retrieves the file ID from Google Drive based on file name and folder.
@@ -80,13 +55,21 @@ def get_file_id(service, file_name, folder_id=FOLDER_ID):
         if files:
             return files[0]['id']
         else:
-            st.error(f"File '{file_name}' not found in the specified GoogleDrive folder.")
-            return None
+            # File not found, create a new file
+            file_metadata = {
+                'name': file_name,
+                'parents': [folder_id]
+            }
+            # Assuming the file should be empty initially, use an empty media body
+            media = MediaIoBaseUpload(io.BytesIO(), mimetype='text/csv')  # Empty file
+            new_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            st.success(f"File '{file_name}' not found. Created a new file in Google Drive.")
+            return new_file['id']
     except Exception as e:
         st.error(f"Error retrieving file ID: {e}")
         return None
 
-# Function to sync a file to Google Drive
+# Function to push a file to GoogleDrive
 def push_file_to_drive(data, file_name, service=drive_service, folder_id=FOLDER_ID):
     """
     Pushes a specific data variable (e.g., a DataFrame) to Google Drive as a CSV file.
@@ -122,6 +105,7 @@ def push_file_to_drive(data, file_name, service=drive_service, folder_id=FOLDER_
     except Exception as e:
         st.error(f"Error syncing {file_name} to Google Drive: {e}")
 
+# Function to fetch file from GoogleDrive
 def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
     """
     Fetches a CSV file from Google Drive and loads it into a pandas DataFrame.
@@ -163,14 +147,6 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 # git add .
 # git commit -m "Added Table with last 5 entries"
 # git push origin main
-
-# File to store push-up logs
-# TODO: This probably needs to be changed so that the files from the google drive are read in
-if os.path.exists(LOG_FILE):
-    log_data = pd.read_csv(LOG_FILE)
-else:
-    st.write("No data file.")
-log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
 
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
@@ -253,7 +229,60 @@ def display_time_series_pushups(log_data, user_selection):
     except Exception as e:
         st.error(f"Error reading or plotting data: {e}")
 
-     
+# dominance graph
+def display_pushups_dominance_with_selection(log_data, user_selection):
+    """
+    Displays a stacked line chart showing the dominance of pushups by user,
+    with the option to select users to include in the plot.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param user_selection: List of selected users to filter the data for plotting.
+    """
+    try:
+        # Ensure 'Timestamp' is in datetime format
+        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+        
+        if user_selection:
+            # Group by date and user, then sum the pushups
+            log_data['Date'] = log_data['Timestamp'].dt.date
+            daily_pushups = log_data[log_data['User'].isin(user_selection)].groupby(['Date', 'User'])['Pushups'].sum().unstack(fill_value=0)
+            
+            # Normalize the data so each row sums to 100%
+            daily_pushups_percent = daily_pushups.div(daily_pushups.sum(axis=1), axis=0) * 100
+            
+            # Create a Plotly figure for stacked lines
+            fig = go.Figure()
+
+            # Add each user as a separate line
+            for user in user_selection:
+                fig.add_trace(go.Scatter(
+                    x=daily_pushups_percent.index,
+                    y=daily_pushups_percent[user],
+                    mode='lines',
+                    stackgroup='one',  # Stack the lines
+                    name=user,
+                    line=dict(width=2),
+                ))
+
+            # Customize the layout
+            fig.update_layout(
+                #title="Dominance of Pushups by User Each Day",
+                xaxis_title="Date",
+                yaxis_title="Percentage of Pushups",
+                xaxis=dict(tickformat="%Y-%m-%d"),
+                legend_title="User",
+                template="plotly_white",
+                height=500,
+                width=800
+            )
+
+            # Show the plot in Streamlit
+            st.plotly_chart(fig)
+        else:
+            st.write("No users selected. Please select at least one user to display the graph.")
+    
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # last five entries into log
 def display_last_five_entries(log_data):
@@ -296,12 +325,27 @@ def display_recent_entries(log_data, num_entries=20):
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
+# table giving push ups done on the day by specific user
+def display_pushups_today(log_data):
+    # Ensure the 'Timestamp' column is in datetime format
+    log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+    # Get today's date (without time component)
+    today = datetime.today().date()
+    # Filter the DataFrame for today's pushups
+    today_df = log_data[log_data['Timestamp'].dt.date == today]
+    if not today_df.empty:
+        # Group by user and sum the pushups
+        pushups_today = today_df.groupby('User')['Pushups'].sum().reset_index()
+        # Display the table with total pushups for each user today
+        #st.subheader(f"Pushups done today ({today}):")
+        st.dataframe(pushups_today)
+    else:
+        # Display a message if no pushups were done today
+        st.write("No pushups logged for today.")
+
 ### START OF THE APP'S SCRIPT
 # Title for the app
 st.title("Push-Up Tracker.")
-
-## FOR TESTING or syncing data with Codespace Workspace
-#push_file_to_drive("pushup_log.csv")
 
 # NewYear's gimmick
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
@@ -345,6 +389,9 @@ if username and pincode:
     if USER_DATABASE[username] == pincode:
         st.success(f"Welcome, {username}!")
         
+        ### LOAD LOG TO BE DISPLAYED
+        log_data = fetch_file_from_drive("pushup_log.csv")
+
         ## ADD PUSH-UPS
         # Create a form to group the input and button together
         with st.form("log_pushups_form"):
@@ -392,6 +439,11 @@ if username and pincode:
         display_recent_entries(log_data)
         #display_last_five_entries(log_data)
         
+        ### SHOW TODAYS PUSHUPS PER USER
+        st.subheader("")
+        st.header("Today's pushups")
+        display_pushups_today(log_data)
+
         ### VISUALIZATION
         st.subheader("")
         st.header("Visualization")
@@ -444,18 +496,15 @@ if username and pincode:
         st.subheader("Push-Ups Over Time")
         display_time_series_pushups(log_data, user_selection)
 
+        ## DISPLAY dominance plot
+        st.subheader("Pushup dominance")
+        display_pushups_dominance_with_selection(log_data, user_selection)
+
         ## SHOW LEGACY DATA FROM 2022
         st.subheader("Legacy")        
-        # TODO: add legacy data here
         with st.expander("2022"):
             # fetch 2022 data from GoogleDrive
-            # TODO: not really needed as nothing changes here. could just be stored locally as well
-            fetch_file_from_drive("pushup_log_2022.csv")
-            # load data locally into variable
-            if os.path.exists(LOG_FILE):
-                log_data_2022 = pd.read_csv("data/pushup_log_2022.csv")
-            else:
-                st.write("No data file.")
+            log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
             log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
             # user selection for 2022
             user_selection_2022 = st.multiselect(
@@ -464,9 +513,12 @@ if username and pincode:
                 default=list(log_data_2022['User'].unique()),  # Set default to all unique users
                 key="user_selection_2022"
                 )
-            # display accumulated pushups 2022
-            display_accumulated_pushups(log_data_2022, user_selection=user_selection_2022)
+            display_accumulated_pushups(log_data_2022, user_selection_2022)
+            display_time_series_pushups(log_data_2022, user_selection_2022)
 
+        with st.expander("1998"):
+            st.image("https://media1.tenor.com/m/ZAMoMuQgf9UAAAAd/mapache-pedro.gif", width = 300)
+        
         ### FUTURE CHANGES
         st.subheader("Stuff that will change (soon)")
         '''
@@ -481,52 +533,44 @@ if username and pincode:
         - differentiate types of push-ups
         - tackle possible issues when multiple users are adding push-ups at the same time
         - stable colors per user in the graphs
+        - overview of pushups on current day
         - make it so that newly logged pushups appear in the graphs (maybe have a button that shows the vis?)
+        - button that actively loads the vis? to increase speed of application
         - add prizes (cash or sexual favors. tbd.)
         '''
 
         ### USER SUGGESTIONS
-        # Path to the suggestions file
-        SUGGESTIONS_FILE = "data/suggestions.csv"
+        # fetch suggestions from GoogleDrive
+        suggestion = fetch_file_from_drive("suggestion.csv")
 
-        # Ensure the data folder exists
-        os.makedirs("data", exist_ok=True)
+        # Ensure suggestion is a DataFrame, if it's empty, initialize with the proper structure
+        if suggestion is None or suggestion.empty:
+            suggestion = pd.DataFrame(columns=["Timestamp", "Username", "Suggestion"])
 
         # Form for user suggestions
         with st.form("suggestion_form"):
             st.write("Have another idea for improvement?")
-
             # Text area for the suggestion (username is automatically logged)
-            suggestion = st.text_area("Your Suggestion", "")
+            suggestion_text = st.text_area("Your Suggestion", "")
             submit_suggestion = st.form_submit_button("Submit Suggestion")
 
             if submit_suggestion:
-                if suggestion.strip():  # Ensure the suggestion is not empty
+                if suggestion_text.strip():  # Ensure the suggestion is not empty
                     # Create a DataFrame for the new suggestion
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     new_suggestion = pd.DataFrame({
                         "Timestamp": [timestamp],
                         "Username": [username],  # Automatically log the username
-                        "Suggestion": [suggestion.strip()]
+                        "Suggestion": [suggestion_text.strip()]
                     })
-
-                    # Try appending or creating the suggestions file
-                    try:
-                        if os.path.exists(SUGGESTIONS_FILE):
-                            # Append to existing suggestions
-                            existing_suggestions = pd.read_csv(SUGGESTIONS_FILE)
-                            updated_suggestions = pd.concat([existing_suggestions, new_suggestion], ignore_index=True)
-                        else:
-                            # Create a new suggestions file
-                            updated_suggestions = new_suggestion
-
-                        # Save updated suggestions
-                        updated_suggestions.to_csv(SUGGESTIONS_FILE, index=False)
-
-                        st.success("Thank you for your suggestion!")
-                        push_file_to_drive(SUGGESTIONS_FILE)
-                    except Exception as e:
-                        st.error(f"Error saving your suggestion: {e}")
+                    
+                    # Append new suggestion to the existing suggestions DataFrame
+                    suggestion = pd.concat([suggestion, new_suggestion], ignore_index=True)
+                    
+                    st.success("Thank you for your suggestion!")
+                    
+                    # Push the updated suggestions to Google Drive
+                    push_file_to_drive(suggestion, "suggestion.csv")
                 else:
                     st.warning("Please write a suggestion before submitting.")
 
@@ -550,4 +594,8 @@ st.subheader("")
 # - time-format issues
 # - make it possible to delete entries if they were made by mistake (only by the user who entered them)
 # - add pedro gif
-# - add prizes
+
+
+
+
+
