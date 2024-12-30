@@ -439,17 +439,15 @@ if username and pincode:
                 )
 
         ## DISPLAY the accumulated push-ups graph
-        # TODO: fix zooming
         # TODO: add fetch to the beginning of visualization, this way the newly added pushups should be displayed
         st.subheader("Accumulated Push-Ups")
         display_accumulated_pushups(log_data, user_selection)
 
         ## DISPLAY the original push-ups over time graph
-        # TODO: fix zoom
         st.subheader("Push-Ups Over Time")
         display_time_series_pushups(log_data, user_selection)
 
-
+        ## SHOW LEGACY DATA FROM 2022
         st.subheader("Legacy")        
         # TODO: add legacy data here
         with st.expander("2022"):
@@ -472,24 +470,24 @@ if username and pincode:
             # display accumulated pushups 2022
             display_accumulated_pushups(log_data_2022, user_selection=user_selection_2022)
 
-
+        ### FUTURE CHANGES
         st.subheader("Stuff that will change (soon)")
         '''
         - make logging quicker (communication with cloud takes some time right now)
         - make date-filter work
-        - fix zooming for figures
         - add optional comments to push-up addition
         - allow deletion of last few own activities by user
         - handle different timezones via user-database, will timezones register locally or globally?
         - add visualizations that were established in googlesheet in the last years
         - allow users to set personal goals for the year
-        - move last years data to a different part of the site ("legacy"), will also adjust the user filter to not be too populated
         - might add different disciplines (squats or pull-ups or w/e)
         - differentiate types of push-ups
         - tackle possible issues when multiple users are adding push-ups at the same time
+        - stable colors per user in the graphs
+        - make it so that newly logged pushups appear in the graphs (maybe have a button that shows the vis?)
         '''
 
-        # User Suggestions
+        ### USER SUGGESTIONS
         # Path to the suggestions file
         SUGGESTIONS_FILE = "data/suggestions.csv"
 
@@ -528,6 +526,7 @@ if username and pincode:
                         updated_suggestions.to_csv(SUGGESTIONS_FILE, index=False)
 
                         st.success("Thank you for your suggestion!")
+                        push_file_to_drive(SUGGESTIONS_FILE)
                     except Exception as e:
                         st.error(f"Error saving your suggestion: {e}")
                 else:
