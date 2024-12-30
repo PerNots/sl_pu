@@ -494,34 +494,41 @@ if username and pincode:
                     max_value=log_data['Timestamp'].max().date()
                 )
 
-        ## DISPLAY the accumulated push-ups graph
-        # TODO: add fetch to the beginning of visualization, this way the newly added pushups should be displayed
-        st.subheader("Accumulated Push-Ups")
-        display_accumulated_pushups(log_data, user_selection)
+        if st.button("Refresh Visualization"):
+            # TODO: make it so that the vis is displayed but only updated by the button
+            ## DISPLAY the accumulated push-ups graph
+            st.subheader("Accumulated Push-Ups")
+            display_accumulated_pushups(log_data, user_selection)
 
-        ## DISPLAY the original push-ups over time graph
-        st.subheader("Push-Ups Over Time")
-        display_time_series_pushups(log_data, user_selection)
+            ## DISPLAY the original push-ups over time graph
+            st.subheader("Push-Ups Over Time")
+            display_time_series_pushups(log_data, user_selection)
 
-        ## DISPLAY dominance plot
-        st.subheader("Pushup dominance")
-        display_pushups_dominance_with_selection(log_data, user_selection)
+            ## DISPLAY dominance plot
+            st.subheader("Pushup dominance")
+            display_pushups_dominance_with_selection(log_data, user_selection)
 
         ## SHOW LEGACY DATA FROM 2022
-        st.subheader("Legacy")        
+        st.subheader("")
+        st.subheader("Legacy") 
+        # Use session_state to track if the expander is open
+        if 'expander_opened' not in st.session_state:
+            st.session_state.expander_opened = False       
         with st.expander("2022"):
+            st.session_state.expander_opened = True
+            if st.session_state.expander_opened:
             # fetch 2022 data from GoogleDrive
-            log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
-            log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
-            # user selection for 2022
-            user_selection_2022 = st.multiselect(
-                "Select Users",
-                log_data_2022['User'].unique(),
-                default=list(log_data_2022['User'].unique()),  # Set default to all unique users
-                key="user_selection_2022"
-                )
-            display_accumulated_pushups(log_data_2022, user_selection_2022)
-            display_time_series_pushups(log_data_2022, user_selection_2022)
+                log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
+                log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
+                # user selection for 2022
+                user_selection_2022 = st.multiselect(
+                    "Select Users",
+                    log_data_2022['User'].unique(),
+                    default=list(log_data_2022['User'].unique()),  # Set default to all unique users
+                    key="user_selection_2022"
+                    )
+                display_accumulated_pushups(log_data_2022, user_selection_2022)
+                display_time_series_pushups(log_data_2022, user_selection_2022)
 
         with st.expander("1998"):
             st.image("https://media1.tenor.com/m/ZAMoMuQgf9UAAAAd/mapache-pedro.gif", width = 300)
