@@ -348,6 +348,9 @@ def display_pushups_today(log_data):
 st.title("Push-Up Tracker.")
 
 # NewYear's gimmick
+# Check if the value for "year" is already stored in session_state, and initialize if not
+if "year" not in st.session_state:
+    st.session_state.year = "2024"
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
 if year == "2025": # Check if the slider is set to "2025"
     st.markdown(
@@ -526,7 +529,7 @@ if username and pincode:
         ### FUTURE CHANGES
         st.subheader("Stuff that will change (soon)")
         '''
-        - make logging quicker (communication with cloud takes some time right now)
+        - make logging quicker (communication with cloud takes some time right now) look into st.session_state
         - make date-filter work
         - add optional comments to push-up addition
         - allow deletion of last few own activities by user
