@@ -54,7 +54,7 @@ log_files = {
 }
 
 # Get the data from GoogleSheets
-data = sheet.get_all_records()
+#data = sheet.get_all_records()
 
 # Dictionary of users and their PIN codes
 USER_DATABASE = st.secrets["user_database"]
