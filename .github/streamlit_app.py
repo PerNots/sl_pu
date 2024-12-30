@@ -381,15 +381,17 @@ with col3:
 if login:
     if username in USER_DATABASE and pincode == USER_DATABASE[username]:
         st.success(f"Welcome, {username}!")
+        time.sleep(3)
+        st.empty()
     else:
         st.error("Invalid username or PIN code. Please try again.")
 
 ### MAIN CONTENT that is displayed when login was successfull
 if username and pincode:
     if USER_DATABASE.get(username) == pincode:
-        st.success(f"Welcome, {username}!")
-        time.sleep(3)  # Wait for 3 seconds
-        st.empty()  # Clear the success message
+        #st.success(f"Welcome, {username}!")
+        #time.sleep(3)  # Wait for 3 seconds
+        #st.empty()  # Clear the success message
         
         ### LOAD LOG TO BE DISPLAYED
         log_data = fetch_file_from_drive("pushup_log.csv")
