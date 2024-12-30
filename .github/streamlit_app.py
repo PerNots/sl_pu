@@ -10,13 +10,18 @@ import time
 import json
 import io
 import plotly.express as px
+import gspread
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload # Uploader
+#from googleapiclient.http import MediaFileUpload # Uploader
 from googleapiclient.http import MediaIoBaseDownload # Downloader
+from googleapiclient.http import MediaIoBaseUpload
+from oauth2client.service_account import ServiceAccountCredentials
 
 ### GOOGLE DRIVE SETUP
+
+# TODO: maybe Drive is not needed anymore as now googlesheet takes over syncing
 # Setting the scope for the GoogleDrive API
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
@@ -27,6 +32,14 @@ key_dict = json.loads(SERVICE_ACCOUNT_KEY)
 # Authenticate with the service account
 credentials = service_account.Credentials.from_service_account_info(key_dict, scopes=SCOPES)
 
+# With googlesheet i can directly modify the cloud file without local storage
+# this will hopefully allow saving data even when the app is restarted
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_dict(key_dict, scope)
+client = gspread.authorize(creds)
+# Open the Google Sheet (assuming it exists)
+sheet = client.open("pushup_log").sheet1
+
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
 
@@ -34,11 +47,15 @@ drive_service = build('drive', 'v3', credentials=credentials)
 FOLDER_ID = st.secrets["google_drive"]["folder_id"]
 
 ### OVERVIEW LOG FILES
+# TODO: probably not needed, i can't use local files while app runs in cloud
 log_files = {
     "pushup_log.csv": "data/pushup_log.csv",
     "pushup_log_2022.csv": "data/pushup_log_2022.csv",
     "suggestions.csv": "data/suggestions.csv"
 }
+
+# Get the data from GoogleSheets
+data = sheet.get_all_records()
 
 # Dictionary of users and their PIN codes
 USER_DATABASE = st.secrets["user_database"]
@@ -71,28 +88,26 @@ def get_file_id(service, file_name, folder_id=FOLDER_ID):
         return None
 
 # Function to sync a file to Google Drive
-# TODO: not yet employed but will allow easy synching of log-files after they were changed
-# TODO: local_file_path and file_name are tmi as the dict above links them together!
-def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
+def push_file_to_drive(data, file_name, service=drive_service, folder_id=FOLDER_ID):
     """
-    Pushes a specific local file to Google Drive. If the file exists, it updates it; otherwise, it creates a new file.
-    :param file_name: The name of the file to push (e.g., 'pushup_log.csv')
-    :param service: Authenticated Google Drive service instance
-    :param folder_id: The Google Drive folder ID where the file should be stored
+    Pushes a specific data variable (e.g., a DataFrame) to Google Drive as a CSV file.
+    :param data: The data (e.g., a pandas DataFrame) to push.
+    :param file_name: The name of the file to push (e.g., 'pushup_log.csv').
+    :param service: Authenticated Google Drive service instance.
+    :param folder_id: The Google Drive folder ID where the file should be stored.
     """
-    # Check if the file exists in the log_files dictionary
-    if file_name not in log_files:
-        st.error(f"File {file_name} not found in the log_files dictionary.")
-        return
-    # Get the local file path from the dictionary
-    local_file_path = log_files[file_name]
-    
     try:
+        # Convert the DataFrame (or data) to CSV in-memory
+        csv_data = data.to_csv(index=False)
+
+        # Create an in-memory file-like object
+        file_like = io.BytesIO(csv_data.encode('utf-8'))
+        
         # Check if the file already exists in Google Drive
         file_id = get_file_id(service, file_name)
         if file_id:
-            # Update the existing file
-            media = MediaFileUpload(local_file_path, mimetype='text/csv')
+            # Update the existing file with new data
+            media = MediaIoBaseUpload(file_like, mimetype='text/csv')
             updated_file = service.files().update(fileId=file_id, media_body=media).execute()
             #st.success(f"Updated existing {file_name} file (File ID: {updated_file.get('id')})")
         else:
@@ -101,7 +116,7 @@ def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
                 'name': file_name,
                 'parents': [folder_id]
             }
-            media = MediaFileUpload(local_file_path, mimetype='text/csv')
+            media = MediaIoBaseUpload(file_like, mimetype='text/csv')
             new_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
             #st.success(f"Created new {file_name} file (in GoogleDrive)")
 
@@ -110,20 +125,12 @@ def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
 
 def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
     """
-    Fetches a file from Google Drive and saves it locally.
+    Fetches a CSV file from Google Drive and loads it into a pandas DataFrame.
     :param file_name: The name of the file to fetch (e.g., 'pushup_log.csv')
-    :param log_files: Dictionary with file names as keys and local paths as values
     :param service: Authenticated Google Drive service instance
     :param folder_id: The Google Drive folder ID where the file is stored
+    :return: pandas DataFrame containing the file's data
     """
-    # Check if the file exists in the log_files dictionary
-    if file_name not in log_files:
-        st.error(f"File {file_name} not found in the log_files dictionary.")
-        return
-
-    # Get the local file path from the dictionary
-    local_file_path = log_files[file_name]
-
     try:
         # Fetch the file ID from Google Drive using the file name and folder ID
         file_id = get_file_id(service, file_name, folder_id)
@@ -131,20 +138,28 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
         if file_id:
             # Download the file content
             request = service.files().get_media(fileId=file_id)
-            fh = io.FileIO(local_file_path, 'wb')
+            fh = io.BytesIO()  # Use a BytesIO object to store the file in memory
             downloader = MediaIoBaseDownload(fh, request)
             
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                #st.write(f"Download {int(status.progress() * 100)}%.")
             
-            #st.success(f"Downloaded {file_name} to {local_file_path}")
+            # Once downloaded, move the cursor to the start of the file content
+            fh.seek(0)
+            
+            # Read the CSV content directly into a pandas DataFrame
+            data = pd.read_csv(fh)
+
+            # Return the DataFrame
+            return data
         else:
             st.error(f"File {file_name} not found in Google Drive.")
+            return None
 
     except Exception as e:
         st.error(f"Error fetching {file_name} from Google Drive: {e}")
+        return None
 
 # git add .
 # git commit -m "Added Table with last 5 entries"
@@ -177,7 +192,7 @@ def display_accumulated_pushups(log_data, user_selection):
                 x="Timestamp",  # X-axis as Timestamp
                 y="Accumulated Pushups",  # Y-axis as accumulated pushups
                 color="User",  # Color by user
-                title="Accumulated Push-Ups Over Time (Selected Users)",
+                #title="Accumulated Push-Ups Over Time (Selected Users)",
                 labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
             )
 
@@ -212,7 +227,7 @@ def display_time_series_pushups(log_data, user_selection):
                 y="Pushups",
                 color="User",
                 labels={"Timestamp": "Time", "Pushups": "Pushups", "User": "User"},
-                title="Pushups Over Time"
+                #title="Pushups Over Time"
             )
             
             # Customize the layout for better interaction
@@ -287,7 +302,7 @@ def display_recent_entries(log_data, num_entries=20):
 st.title("Push-Up Tracker.")
 
 ## FOR TESTING or syncing data with Codespace Workspace
-push_file_to_drive("pushup_log.csv")
+#push_file_to_drive("pushup_log.csv")
 
 # NewYear's gimmick
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
@@ -354,34 +369,17 @@ if username and pincode:
                 # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
                 try:
                     # fetch file from GoogleDrive to Local
-                    fetch_file_from_drive("pushup_log.csv")
+                    log = fetch_file_from_drive("pushup_log.csv")
                     # append local file with current push-ups
-                    if os.path.exists(LOG_FILE):
-                        # Read the existing log file
-                        existing_log = pd.read_csv(LOG_FILE)
-                        # Append the new entry
-                        updated_log = pd.concat([existing_log, new_entry], ignore_index=True)
-                    else:
-                        # If the file doesn't exist, create it
-                        updated_log = new_entry
-                        st.error("Local log-file not existing - sync issue likely")
-                    # Save the updated log to the file
-                    updated_log.to_csv(LOG_FILE, index=False)
+                    log = pd.concat([log, new_entry], ignore_index=True)
 
                     # push the updated local log file to Google Drive
-                    push_file_to_drive("pushup_log.csv")
-                    
-                    #file_metadata = {'name': 'pushup_log.csv'}
-                    #media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
-                    #file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-                    # TODO: remove this message again, success-message can be found below
-                    # st.success(f"Logged {pushups} push-ups at {timestamp}! (File ID: {file.get('id')})")
+                    push_file_to_drive(log, "pushup_log.csv")
 
                     # Placeholder success message
                     success_message = st.empty()
                     formatted_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
                     success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
-                    
                     time.sleep(2)
                     # Clear the message
                     success_message.empty()
@@ -485,6 +483,7 @@ if username and pincode:
         - tackle possible issues when multiple users are adding push-ups at the same time
         - stable colors per user in the graphs
         - make it so that newly logged pushups appear in the graphs (maybe have a button that shows the vis?)
+        - add prizes (cash or sexual favors. tbd.)
         '''
 
         ### USER SUGGESTIONS
@@ -544,7 +543,6 @@ st.subheader("")
 
 
 # TODO:
-# - make colors static so that they don't change when users are selected in different orders
 # - add all the graphs from the googlesheet
 # - add specific timestamps to choose from e.g. "2022, 2023, last three months, current month, everything, custom range"
 # - add leaderboard displaying the top three of differnt things
@@ -552,4 +550,5 @@ st.subheader("")
 #     - top most pushups in a day
 # - time-format issues
 # - make it possible to delete entries if they were made by mistake (only by the user who entered them)
-
+# - add pedro gif
+# - add prizes
