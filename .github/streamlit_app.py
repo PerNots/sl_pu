@@ -349,8 +349,8 @@ st.title("Push-Up Tracker.")
 
 # NewYear's gimmick
 # Check if the value for "year" is already stored in session_state, and initialize if not
-if "year" not in st.session_state:
-    st.session_state.year = "2024"
+#if "year" not in st.session_state:
+#    st.session_state.year = "2024"
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
 if year == "2025": # Check if the slider is set to "2025"
     st.markdown(
