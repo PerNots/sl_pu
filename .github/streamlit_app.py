@@ -41,7 +41,7 @@ log_files = {
 # Dictionary of users and their PIN codes
 USER_DATABASE = st.secrets["user_database"]
 
-# TODO: remove this, it is now stored in the log_files dictionary
+# TODO: remove this?!?, it is now stored in the log_files dictionary
 LOG_FILE = "data/pushup_log.csv" # local file that will be synced to GoogleDrive via ServiceAccount
 
 # Function to check if the file exists in the folder - used in push_file_to_drive()
@@ -62,7 +62,7 @@ def get_file_id(service, file_name, folder_id=FOLDER_ID):
         if files:
             return files[0]['id']
         else:
-            st.error(f"File '{file_name}' not found in the specified folder.")
+            st.error(f"File '{file_name}' not found in the specified GoogleDrive folder.")
             return None
     except Exception as e:
         st.error(f"Error retrieving file ID: {e}")
@@ -92,7 +92,7 @@ def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
             # Update the existing file
             media = MediaFileUpload(local_file_path, mimetype='text/csv')
             updated_file = service.files().update(fileId=file_id, media_body=media).execute()
-            st.success(f"Updated existing {file_name} file (File ID: {updated_file.get('id')})")
+            #st.success(f"Updated existing {file_name} file (File ID: {updated_file.get('id')})")
         else:
             # Create a new file if it doesn't exist
             file_metadata = {
@@ -101,12 +101,12 @@ def push_file_to_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
             }
             media = MediaFileUpload(local_file_path, mimetype='text/csv')
             new_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-            st.success(f"Created new {file_name} file (File ID: {new_file.get('id')})")
+            #st.success(f"Created new {file_name} file (in GoogleDrive)")
 
     except Exception as e:
         st.error(f"Error syncing {file_name} to Google Drive: {e}")
 
-def fetch_file_from_drive(file_name, log_files, service=drive_service, folder_id=FOLDER_ID):
+def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID):
     """
     Fetches a file from Google Drive and saves it locally.
     :param file_name: The name of the file to fetch (e.g., 'pushup_log.csv')
@@ -135,9 +135,9 @@ def fetch_file_from_drive(file_name, log_files, service=drive_service, folder_id
             done = False
             while done is False:
                 status, done = downloader.next_chunk()
-                st.write(f"Download {int(status.progress() * 100)}%.")
+                #st.write(f"Download {int(status.progress() * 100)}%.")
             
-            st.success(f"Downloaded {file_name} to {local_file_path}")
+            #st.success(f"Downloaded {file_name} to {local_file_path}")
         else:
             st.error(f"File {file_name} not found in Google Drive.")
 
@@ -155,11 +155,6 @@ if os.path.exists(LOG_FILE):
 else:
     st.write("No data file.")
 log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
-
-
-
-# Debugging: Show where the file is saved
-#st.write(f"Saving to: {os.path.abspath(LOG_FILE)}")
 
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
@@ -198,7 +193,47 @@ def display_accumulated_pushups(log_data, user_selection):
         except Exception as e:
             st.error(f"Error reading or plotting accumulated data: {e}")
 
-# last five entries into database
+# graph for pushups over time
+def display_time_series_pushups(log_data, user_selection):
+    """
+    Displays a time-series graph of pushups for the selected users.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param user_selection: List of selected users to filter the data for plotting.
+    """
+    try:
+        # Ensure the Timestamp column is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+        
+        # Filter data based on selected users
+        if user_selection:
+            filtered_data = log_data[log_data['User'].isin(user_selection)]
+            
+            # Create an interactive selection for zoom and pan
+            brush = alt.selection_interval(encodings=['x'])
+            
+            # Plot the original time-series data for the selected users with interactive zoom
+            line_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
+                x=alt.X("Timestamp:T", title="Time"),
+                y=alt.Y("Pushups:Q", title="Push-Ups"),
+                color="User:N",  # Different colors for each user
+                tooltip=["Timestamp:T", "Pushups:Q", "User:N"]
+            ).properties(
+                width=800,
+                height=400,
+            ).add_selection(
+                brush
+            ).interactive()  # Enables zoom and pan
+            
+            # Display the chart
+            st.altair_chart(line_chart, use_container_width=True)
+        else:
+            st.write("No users selected. Please select at least one user to display the graph.")
+
+    except Exception as e:
+        st.error(f"Error reading or plotting data: {e}")
+
+# last five entries into log
 def display_last_five_entries(log_data):
     try:
         # Convert the Timestamp column to datetime format if it's not already
@@ -221,9 +256,30 @@ def display_last_five_entries(log_data):
     except Exception as e:
         st.error(f"Error displaying the last five entries: {e}")
 
+# recent entries into log (more than 5, scrollable element)
+def display_recent_entries(log_data, num_entries=20):
+    try:
+        # Convert the Timestamp column to datetime format if it's not already
+        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+        # Extract the Date and Time from the Timestamp
+        log_data['Date'] = log_data['Timestamp'].dt.date
+        log_data['Time'] = log_data['Timestamp'].dt.time
+        # Select the relevant columns and get the most recent entries
+        recent_entries = log_data[['Date', 'Time', 'User', 'Pushups']].tail(num_entries).iloc[::-1]
+        # Display the recent entries in a scrollable element
+        st.dataframe(
+            recent_entries,
+            height=250  # Set the height of the scrollable area
+        )
+    except Exception as e:
+        st.error(f"Error displaying the recent entries: {e}")
 
+### START OF THE APP'S SCRIPT
 # Title for the app
 st.title("Push-Up Tracker.")
+
+## FOR TESTING or syncing data with Codespace Workspace
+push_file_to_drive("pushup_log.csv")
 
 # NewYear's gimmick
 year = st.select_slider("Happy New Year!", options=["2024", "2025"])
@@ -262,11 +318,12 @@ if login:
     else:
         st.error("Invalid username or PIN code. Please try again.")
 
-# Main content that is displayed when login was successfull
+### MAIN CONTENT that is displayed when login was successfull
 if username and pincode:
     if USER_DATABASE[username] == pincode:
         st.success(f"Welcome, {username}!")
         
+        ## ADD PUSH-UPS
         # Create a form to group the input and button together
         with st.form("log_pushups_form"):
             # Create two columns to place the input field and button side by side
@@ -286,7 +343,12 @@ if username and pincode:
                 new_entry = pd.DataFrame({"Timestamp": [timestamp], "Pushups": [pushups], "User": [username]})
 
                 # Try to append to the existing log file or create a new one
+                # TODO: code should fetch, append, and push here to minimize conflicts when multiple
+                # users are logging at the same time (see how this works in practice)
                 try:
+                    # fetch file from GoogleDrive to Local
+                    fetch_file_from_drive("pushup_log.csv")
+                    # append local file with current push-ups
                     if os.path.exists(LOG_FILE):
                         # Read the existing log file
                         existing_log = pd.read_csv(LOG_FILE)
@@ -295,16 +357,18 @@ if username and pincode:
                     else:
                         # If the file doesn't exist, create it
                         updated_log = new_entry
-
+                        st.error("Local log-file not existing - sync issue likely")
                     # Save the updated log to the file
                     updated_log.to_csv(LOG_FILE, index=False)
 
-                    # Upload the updated log file to Google Drive
-                    file_metadata = {'name': 'pushup_log.csv'}
-                    media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
-                    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+                    # push the updated local log file to Google Drive
+                    push_file_to_drive("pushup_log.csv")
+                    
+                    #file_metadata = {'name': 'pushup_log.csv'}
+                    #media = MediaFileUpload(LOG_FILE, mimetype='text/csv')
+                    #file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
                     # TODO: remove this message again, success-message can be found below
-                    st.success(f"Logged {pushups} push-ups at {timestamp}! (File ID: {file.get('id')})")
+                    # st.success(f"Logged {pushups} push-ups at {timestamp}! (File ID: {file.get('id')})")
 
                     # Placeholder success message
                     success_message = st.empty()
@@ -318,7 +382,17 @@ if username and pincode:
                 except Exception as e:
                     st.error(f"Error writing to file: {e}")
 
+        ### SHOW THE LAST 5 ENTRIES
         st.subheader("")
+        st.header("Recent entries")
+        display_recent_entries(log_data)
+        #display_last_five_entries(log_data)
+        
+        ### VISUALIZATION
+        st.subheader("")
+        st.header("Visualization")
+        ### FILTER THE DATA FOR VISUALISATION
+        ## USER FILTER
         st.subheader("Filter")
         user_selection = st.multiselect(
             "Select Users",
@@ -326,6 +400,7 @@ if username and pincode:
             default=list(log_data['User'].unique())  # Set default to all unique users
             )
         
+        ## DATE FILTER
         col1, col2 = st.columns([1, 1])
         with col2:
             # Date range selection for end date
@@ -355,57 +430,41 @@ if username and pincode:
                     min_value=log_data['Timestamp'].min().date(),
                     max_value=log_data['Timestamp'].max().date()
                 )
-        
-        st.subheader("")
-        st.header("Last 5 entries")
-        display_last_five_entries(log_data)
-        # Display the accumulated push-ups graph
-        st.subheader("")
-        st.header("Visualization")
+
+        ## DISPLAY the accumulated push-ups graph
+        # TODO: fix zooming
+        # TODO: add fetch to the beginning of visualization, this way the newly added pushups should be displayed
         st.subheader("Accumulated Push-Ups")
         display_accumulated_pushups(log_data, user_selection)
 
-        # Display the original push-ups over time graph
+        ## DISPLAY the original push-ups over time graph
+        # TODO: fix zoom
         st.subheader("Push-Ups Over Time")
+        display_time_series_pushups(log_data, user_selection)
 
-        if os.path.exists(LOG_FILE):
-            try:
-                # Read the log file
-                log_data = pd.read_csv(LOG_FILE)
 
-                # Convert the Timestamp column to a datetime type
-                log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+        st.subheader("Legacy")        
+        # TODO: add legacy data here
+        with st.expander("2022"):
+            # fetch 2022 data from GoogleDrive
+            # TODO: not really needed as nothing changes here. could just be stored locally as well
+            fetch_file_from_drive("pushup_log_2022.csv")
+            # load data locally into variable
+            if os.path.exists(LOG_FILE):
+                log_data_2022 = pd.read_csv("data/pushup_log_2022.csv")
+            else:
+                st.write("No data file.")
+            log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
+            # user selection for 2022
+            user_selection_2022 = st.multiselect(
+                "Select Users",
+                log_data_2022['User'].unique(),
+                default=list(log_data_2022['User'].unique()),  # Set default to all unique users
+                key="user_selection_2022"
+                )
+            # display accumulated pushups 2022
+            display_accumulated_pushups(log_data_2022, user_selection=user_selection_2022)
 
-                # Filter data based on selected users for the time-series graph
-                if user_selection:
-                    filtered_data = log_data[log_data['User'].isin(user_selection)]
-
-                    # Create an interactive selection for zoom and pan
-                    brush = alt.selection_interval(encodings=['x'])
-
-                    # Plot the original time-series data for the selected users with interactive zoom
-                    line_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
-                        x=alt.X("Timestamp:T", title="Time"),
-                        y=alt.Y("Pushups:Q", title="Push-Ups"),
-                        color="User:N",  # Different colors for each user
-                        tooltip=["Timestamp:T", "Pushups:Q", "User:N"]
-                    ).properties(
-                        width=800,
-                        height=400,
-                        title="Push-Ups Over Time (Selected Users)"
-                    ).add_selection(
-                        brush
-                    ).interactive()  # Enables zoom and pan
-
-                    # Display the chart
-                    st.altair_chart(line_chart, use_container_width=True)
-                else:
-                    st.write("No users selected. Please select at least one user to display the graph.")
-
-            except Exception as e:
-                st.error(f"Error reading or plotting data: {e}")
-        else:
-            st.write("No data to display yet.")
 
         st.subheader("Stuff that will change (soon)")
         '''
@@ -419,7 +478,7 @@ if username and pincode:
         - move last years data to a different part of the site ("legacy"), will also adjust the user filter to not be too populated
         - might add different disciplines (squats or pull-ups or w/e)
         - differentiate types of push-ups
-        - establish suggestion tab that let's you send your own suggestions on what to change
+        - tackle possible issues when multiple users are adding push-ups at the same time
         '''
 
         # User Suggestions
