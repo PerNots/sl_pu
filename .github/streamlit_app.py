@@ -175,7 +175,7 @@ def display_accumulated_pushups(log_data, user_selection):
 
                 # Plot the accumulated data for the selected users
                 accumulated_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
-                    x="Timestamp:T",
+                    x=alt.X("Timestamp:T", title="Time"),
                     y="Accumulated Pushups:Q",
                     color="User:N",  # Different colors for each user
                     tooltip=["Timestamp:T", "Accumulated Pushups:Q", "User:N"],
@@ -194,7 +194,7 @@ def display_accumulated_pushups(log_data, user_selection):
             st.error(f"Error reading or plotting accumulated data: {e}")
 
 # graph for pushups over time
-def display_time_series_pushups(log_data, user_selection):
+def display_time_series_pushups_bu(log_data, user_selection):
     """
     Displays a time-series graph of pushups for the selected users.
 
@@ -209,21 +209,23 @@ def display_time_series_pushups(log_data, user_selection):
         if user_selection:
             filtered_data = log_data[log_data['User'].isin(user_selection)]
             
-            # Create an interactive selection for zoom and pan
-            brush = alt.selection_interval(encodings=['x'])
+            # Create an interactive selection for zooming only along the x-axis
+            x_brush = alt.selection_interval(encodings=['x'], bind='scales')
+            y_brush = alt.selection_interval(encodings=['y'], bind='scales')
             
-            # Plot the original time-series data for the selected users with interactive zoom
+            # Plot the original time-series data for the selected users
             line_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
                 x=alt.X("Timestamp:T", title="Time"),
-                y=alt.Y("Pushups:Q", title="Push-Ups"),
+                y=alt.Y("Pushups:Q", title="Pushups"),
                 color="User:N",  # Different colors for each user
                 tooltip=["Timestamp:T", "Pushups:Q", "User:N"]
             ).properties(
                 width=800,
                 height=400,
             ).add_selection(
-                brush
-            ).interactive()  # Enables zoom and pan
+                x_brush,  # Enable zoom on x-axis
+                y_brush   # Enable zoom on y-axis
+            )
             
             # Display the chart
             st.altair_chart(line_chart, use_container_width=True)
@@ -232,6 +234,60 @@ def display_time_series_pushups(log_data, user_selection):
 
     except Exception as e:
         st.error(f"Error reading or plotting data: {e}")
+
+# hopefully better zooming
+import plotly.express as px
+
+def display_time_series_pushups(log_data, user_selection):
+    """
+    Displays a time-series graph of pushups for the selected users using Plotly.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param user_selection: List of selected users to filter the data for plotting.
+    """
+    try:
+        # Ensure the Timestamp column is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+        
+        # Filter data based on selected users
+        if user_selection:
+            filtered_data = log_data[log_data['User'].isin(user_selection)]
+            
+            # Create the Plotly figure
+            fig = px.line(
+                filtered_data,
+                x="Timestamp",
+                y="Pushups",
+                color="User",
+                labels={"Timestamp": "Time", "Pushups": "Pushups", "User": "User"},
+                title="Pushups Over Time"
+            )
+            
+            # Customize the layout for better interaction
+            fig.update_layout(
+                width=800,
+                height=400,
+                xaxis_title="Time",
+                yaxis_title="Pushups",
+                margin=dict(l=40, r=40, t=40, b=40),
+                legend_title="Users",
+            )
+            
+            # Enable interactive tools like zoom and pan
+            fig.update_layout(
+                dragmode="zoom",  # Allows zooming by dragging
+                hovermode="x unified"  # Unified hover mode for better tooltips
+            )
+            
+            # Display the chart in Streamlit
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.write("No users selected. Please select at least one user to display the graph.")
+
+    except Exception as e:
+        st.error(f"Error reading or plotting data: {e}")
+
+     
 
 # last five entries into log
 def display_last_five_entries(log_data):
@@ -468,6 +524,7 @@ if username and pincode:
 
         st.subheader("Stuff that will change (soon)")
         '''
+        - make logging quicker (communication with cloud takes some time right now)
         - make date-filter work
         - fix zooming for figures
         - add optional comments to push-up addition
