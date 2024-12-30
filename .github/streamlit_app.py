@@ -381,8 +381,8 @@ with col3:
 if login:
     if username in USER_DATABASE and pincode == USER_DATABASE[username]:
         st.success(f"Welcome, {username}!")
-        time.sleep(3)
-        st.empty()
+        #time.sleep(3)
+        #st.empty()
     else:
         st.error("Invalid username or PIN code. Please try again.")
 
