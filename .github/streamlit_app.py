@@ -1,4 +1,5 @@
 # Import needed (?) packages
+# TODO: remove unneeded packages via pipreqs
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 import time
 import json
 import io
+import plotly.express as px
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -158,86 +160,36 @@ log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
 
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
-        try:
-            # Sort the data by Timestamp to ensure proper accumulation
-            log_data = log_data.sort_values(by="Timestamp")
-            # Create a new column with the accumulated sum of push-ups per user
-            log_data['Accumulated Pushups'] = log_data.groupby('User')['Pushups'].cumsum()
-            # User selection dropdown for multiple users
-            #user_selection = st.multiselect(
-            #    "Select Users",
-            #    log_data['User'].unique(),
-            #    default=list(log_data['User'].unique())  # Set default to all unique users
-            #    )
-            # Filter data based on selected users
-            if user_selection:
-                filtered_data = log_data[log_data['User'].isin(user_selection)]
-
-                # Plot the accumulated data for the selected users
-                accumulated_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
-                    x=alt.X("Timestamp:T", title="Time"),
-                    y="Accumulated Pushups:Q",
-                    color="User:N",  # Different colors for each user
-                    tooltip=["Timestamp:T", "Accumulated Pushups:Q", "User:N"],
-                    size=alt.value(2)
-                ).properties(
-                    width=800,
-                    height=400,
-                    #title="Accumulated Push-Ups Over Time (Selected Users)"
-                )
-
-                st.altair_chart(accumulated_chart, use_container_width=True)
-            else:
-                st.write("No users selected. Please select at least one user to display the graph.")
-
-        except Exception as e:
-            st.error(f"Error reading or plotting accumulated data: {e}")
-
-# graph for pushups over time
-def display_time_series_pushups_bu(log_data, user_selection):
-    """
-    Displays a time-series graph of pushups for the selected users.
-
-    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
-    :param user_selection: List of selected users to filter the data for plotting.
-    """
     try:
-        # Ensure the Timestamp column is in datetime format
-        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+        # Sort the data by Timestamp to ensure proper accumulation
+        log_data = log_data.sort_values(by="Timestamp")
         
+        # Create a new column with the accumulated sum of push-ups per user
+        log_data['Accumulated Pushups'] = log_data.groupby('User')['Pushups'].cumsum()
+
         # Filter data based on selected users
         if user_selection:
             filtered_data = log_data[log_data['User'].isin(user_selection)]
-            
-            # Create an interactive selection for zooming only along the x-axis
-            x_brush = alt.selection_interval(encodings=['x'], bind='scales')
-            y_brush = alt.selection_interval(encodings=['y'], bind='scales')
-            
-            # Plot the original time-series data for the selected users
-            line_chart = alt.Chart(filtered_data).mark_line(point=True).encode(
-                x=alt.X("Timestamp:T", title="Time"),
-                y=alt.Y("Pushups:Q", title="Pushups"),
-                color="User:N",  # Different colors for each user
-                tooltip=["Timestamp:T", "Pushups:Q", "User:N"]
-            ).properties(
-                width=800,
-                height=400,
-            ).add_selection(
-                x_brush,  # Enable zoom on x-axis
-                y_brush   # Enable zoom on y-axis
+
+            # Create a Plotly line chart for the accumulated pushups data
+            accumulated_chart = px.line(
+                filtered_data,
+                x="Timestamp",  # X-axis as Timestamp
+                y="Accumulated Pushups",  # Y-axis as accumulated pushups
+                color="User",  # Color by user
+                title="Accumulated Push-Ups Over Time (Selected Users)",
+                labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
             )
-            
-            # Display the chart
-            st.altair_chart(line_chart, use_container_width=True)
+
+            # Show the chart in Streamlit
+            st.plotly_chart(accumulated_chart, use_container_width=True)
         else:
             st.write("No users selected. Please select at least one user to display the graph.")
 
     except Exception as e:
-        st.error(f"Error reading or plotting data: {e}")
+        st.error(f"Error reading or plotting accumulated data: {e}")
 
-# hopefully better zooming
-import plotly.express as px
-
+# graph for pushups over time
 def display_time_series_pushups(log_data, user_selection):
     """
     Displays a time-series graph of pushups for the selected users using Plotly.
@@ -399,8 +351,7 @@ if username and pincode:
                 new_entry = pd.DataFrame({"Timestamp": [timestamp], "Pushups": [pushups], "User": [username]})
 
                 # Try to append to the existing log file or create a new one
-                # TODO: code should fetch, append, and push here to minimize conflicts when multiple
-                # users are logging at the same time (see how this works in practice)
+                # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
                 try:
                     # fetch file from GoogleDrive to Local
                     fetch_file_from_drive("pushup_log.csv")
