@@ -20,7 +20,6 @@ from googleapiclient.http import MediaIoBaseUpload
 from oauth2client.service_account import ServiceAccountCredentials
 
 ### GOOGLE DRIVE SETUP
-
 # TODO: maybe Drive is not needed anymore as now googlesheet takes over syncing
 # Setting the scope for the GoogleDrive API
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
@@ -34,11 +33,11 @@ credentials = service_account.Credentials.from_service_account_info(key_dict, sc
 
 # With googlesheet i can directly modify the cloud file without local storage
 # this will hopefully allow saving data even when the app is restarted
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_dict(key_dict, scope)
-client = gspread.authorize(creds)
+#scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+#creds = ServiceAccountCredentials.from_json_keyfile_dict(key_dict, scope)
+#client = gspread.authorize(creds)
 # Open the Google Sheet (assuming it exists)
-sheet = client.open("pushup_log").sheet1
+#sheet = client.open("pushup_log").sheet1
 
 # Build the Google Drive API client
 drive_service = build('drive', 'v3', credentials=credentials)
