@@ -547,8 +547,6 @@ if username and pincode:
         - differentiate types of push-ups
         - tackle possible issues when multiple users are adding push-ups at the same time
         - stable colors per user in the graphs
-        - overview of pushups on current day
-        - make it so that newly logged pushups appear in the graphs (maybe have a button that shows the vis?)
         - button that actively loads the vis? to increase speed of application
         - add prizes (cash or sexual favors. tbd.)
         '''
