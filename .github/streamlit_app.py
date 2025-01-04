@@ -436,9 +436,7 @@ def display_pushup_heatmap(log_data):
 
 
 ### GIMMICK AREA
-import streamlit as st
-
-# Custom CSS for the scrolling banner
+# Custom CSS to adjust for dark and light modes
 st.markdown(
     """
     <style>
@@ -447,7 +445,6 @@ st.markdown(
         overflow: hidden; /* Ensures content outside is not visible */
         width: 100%;
         height: 50px; /* Adjust height as needed */
-        background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 10%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%);
     }
 
     .banner-text {
@@ -456,16 +453,36 @@ st.markdown(
         display: inline-block;
         animation: scroll-text 10s linear infinite;
         font-size: 24px; /* Adjust font size */
-        color: black;
         padding-left: 100%; /* Start the text off-screen to the right */
     }
 
+    /* Animation */
     @keyframes scroll-text {
         0% {
             transform: translateX(0%);
         }
         100% {
             transform: translateX(-100%);
+        }
+    }
+
+    /* Light Mode Styles */
+    @media (prefers-color-scheme: light) {
+        .banner-container {
+            background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 10%, rgba(255, 255, 255, 0) 90%, rgba(255, 255, 255, 1) 100%);
+        }
+        .banner-text {
+            color: black; /* Black text for light mode */
+        }
+    }
+
+    /* Dark Mode Styles */
+    @media (prefers-color-scheme: dark) {
+        .banner-container {
+            background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 90%, rgba(0, 0, 0, 1) 100%);
+        }
+        .banner-text {
+            color: white; /* White text for dark mode */
         }
     }
     </style>
@@ -477,11 +494,12 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">🎉 Welcome to the Pushup Tracker App! Lots of new things added hurrah hurrah 🎉</div>
+        <div class="banner-text">🎉 Welcome to the Pushup Tracker App! Track your progress and stay fit! 🎉</div>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
 
