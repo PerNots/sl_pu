@@ -437,7 +437,7 @@ def display_pushup_heatmap(log_data):
 
 ### GIMMICK AREA
 
-# Custom CSS for the banner without blurry edges
+# Custom CSS for the banner
 st.markdown(
     """
     <style>
@@ -446,33 +446,31 @@ st.markdown(
         overflow: hidden; /* Ensures content outside is not visible */
         width: 100%;
         height: 50px; /* Adjust height as needed */
-        background-color: var(--background-color); /* Dynamic background color */
     }
 
     .banner-text {
         position: absolute;
         white-space: nowrap;
         display: inline-block;
-        animation: scroll-text 10s linear infinite;
+        animation: scroll-text 20s linear infinite; /* Slower animation */
         font-size: 24px; /* Adjust font size */
         color: var(--text-color); /* Dynamic text color */
-        padding-left: 100%; /* Start the text off-screen to the right */
+        padding-left: 0; /* Starts immediately without delay */
     }
 
     /* Animation */
     @keyframes scroll-text {
         0% {
-            transform: translateX(0%);
+            transform: translateX(100%); /* Start just outside the right edge */
         }
         100% {
-            transform: translateX(-100%);
+            transform: translateX(-100%); /* End just outside the left edge */
         }
     }
 
     /* Light Mode Styles */
     @media (prefers-color-scheme: light) {
         .banner-container {
-            --background-color: #ffffff; /* Solid white background for light mode */
             --text-color: #000000; /* Black text for light mode */
         }
     }
@@ -480,7 +478,6 @@ st.markdown(
     /* Dark Mode Styles */
     @media (prefers-color-scheme: dark) {
         .banner-container {
-            --background-color: #000000; /* Solid black background for dark mode */
             --text-color: #ffffff; /* White text for dark mode */
         }
     }
