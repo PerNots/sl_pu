@@ -2,15 +2,15 @@
 # TODO: remove unneeded packages via pipreqs
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-from datetime import date
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import time
 import json
 import io
 import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
+import pytz
+from datetime import datetime
 import matplotlib.pyplot as plt
 #import matplotlib.pyplot as plt
 # For syncing to GoogleDrive
@@ -18,6 +18,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload # Downloader
 from googleapiclient.http import MediaIoBaseUpload
+
+### SET TIME ZONE TO GERMANY - BERLIN
+# Get the German timezone (CET/CEST)
+# Get the current time in UTC and convert it to German time
+utc_time = datetime.utcnow().replace(tzinfo=pytz.utc)  # Get UTC time
+german_time = utc_time.astimezone(pytz.timezone('Europe/Berlin'))
+
 
 ### GOOGLE DRIVE SETUP
 # TODO: maybe Drive is not needed anymore as now googlesheet takes over syncing
@@ -490,7 +497,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Cheers. Happy pushing.</div>
+        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
