@@ -345,24 +345,38 @@ def display_pushups_today(log_data):
         st.write("No pushups logged for today.")
 
 # table giving the push up average (daily)
-def display_daily_average_pushups(log_data):
+def display_daily_average_pushups(log_data, start_date="2024-12-31"):
     """
     Displays a table showing the daily average of pushups for each user, 
+    divided by the total days passed since the start date, 
     sorted by the highest average.
+
+    :param log_data: DataFrame containing pushup logs.
+    :param start_date: Start date as a string in the format 'YYYY-MM-DD'.
     """
     # Ensure the 'Timestamp' column is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
-    # Extract the date component for grouping
-    log_data['Date'] = log_data['Timestamp'].dt.date
-    # Group by 'Date' and 'User', then sum the pushups
-    daily_totals = log_data.groupby(['Date', 'User'])['Pushups'].sum().reset_index()
-    # Calculate the daily average for each user
-    user_daily_avg = daily_totals.groupby('User')['Pushups'].mean().reset_index()
-    user_daily_avg.rename(columns={'Pushups': 'Daily Average'}, inplace=True)
+    
+    # Parse the start date and calculate the days passed
+    start_date = pd.to_datetime(start_date).date()
+    today = date.today()
+    days_passed = (today - start_date).days + 1  # Include the start day
+    
+    if days_passed <= 0:
+        st.error("Invalid start date: must be before today.")
+        return
+
+    # Calculate the total pushups for each user
+    user_totals = log_data.groupby('User')['Pushups'].sum().reset_index()
+    
+    # Add a column for daily average based on total days passed
+    user_totals['Daily Average'] = user_totals['Pushups'] / days_passed
+    
     # Sort the table by the daily average in descending order
-    user_daily_avg = user_daily_avg.sort_values(by='Daily Average', ascending=False).reset_index(drop=True)
+    user_totals = user_totals.sort_values(by='Daily Average', ascending=False).reset_index(drop=True)
+    
     # Display the table
-    st.dataframe(user_daily_avg)
+    st.dataframe(user_totals[['User', 'Daily Average']])
 
 
 ### START OF THE APP'S SCRIPT
