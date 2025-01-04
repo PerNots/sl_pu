@@ -467,8 +467,8 @@ if username and pincode:
 
         ### SHOW AVERAGE OF ALL USERS
         st.subheader("")
-        st.header("Average pushups per day")
-        display_daily_average_pushups(log_data)
+        with st.expander("Average pushups per day"):
+            display_daily_average_pushups(log_data)
 
         ### VISUALIZATION
         st.subheader("")
@@ -625,7 +625,11 @@ st.subheader("")
 #     - top most pushups in a day
 # - time-format issues
 # - make it possible to delete entries if they were made by mistake (only by the user who entered them)
-# - add pedro gif
+# - make dominance sheet so that current user is always at the bottom
+# - make more efficient, seperate streamlit for vis?
+# - telegram integration?
+# - with plotly, i actually don't need the user selection anymore because it can be done within the plot
+
 
 
 
