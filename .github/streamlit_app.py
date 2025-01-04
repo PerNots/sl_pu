@@ -619,7 +619,6 @@ if username and pincode:
         - allow deletion of last few own activities by user
         - handle different timezones via user-database, will timezones register locally or globally?
         - add visualizations that were established in googlesheet in the last years
-        - add heatmap showing when in the day/week pushups are done (thanks Nick)
         - allow users to set personal goals for the year
         - might add different disciplines (squats or pull-ups or w/e)
         - differentiate types of push-ups
