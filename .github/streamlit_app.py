@@ -326,7 +326,7 @@ def display_recent_entries(log_data, num_entries=20):
         st.error(f"Error displaying the recent entries: {e}")
 
 # table giving push ups done on the day by specific user
-def display_pushups_today(log_data):
+def display_pushups_today_sorted(log_data):
     # Ensure the 'Timestamp' column is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
     # Get today's date (without time component)
@@ -336,8 +336,9 @@ def display_pushups_today(log_data):
     if not today_df.empty:
         # Group by user and sum the pushups
         pushups_today = today_df.groupby('User')['Pushups'].sum().reset_index()
+        # Sort by pushups in descending order
+        pushups_today = pushups_today.sort_values(by='Pushups', ascending=False).reset_index(drop=True)
         # Display the table with total pushups for each user today
-        #st.subheader(f"Pushups done today ({today}):")
         st.dataframe(pushups_today)
     else:
         # Display a message if no pushups were done today
@@ -346,27 +347,6 @@ def display_pushups_today(log_data):
 ### START OF THE APP'S SCRIPT
 # Title for the app
 st.title("Push-Up Tracker.")
-
-# NewYear's gimmick
-# Check if the value for "year" is already stored in session_state, and initialize if not
-#if "year" not in st.session_state:
-#    st.session_state.year = "2024"
-year = st.select_slider("Happy New Year!", options=["2024", "2025"])
-if year == "2025": # Check if the slider is set to "2025"
-    st.markdown(
-        """
-        <style>
-            .custom-text {
-                font-size: 32px;  /* Adjust the size as needed */
-                color: #FF4500;   /* Optional: Set the color */
-                text-align: center; /* Center the text */
-            }
-        </style>
-        <div class="custom-text">🎆🎇🎆🎇</div>
-        """,
-        unsafe_allow_html=True
-    )
-st.title("")
 
 # Login-part
 # Side-by-side layout for username and PIN code
@@ -440,7 +420,7 @@ if username and pincode:
                 except Exception as e:
                     st.error(f"Error writing to file: {e}")
 
-        ### SHOW THE LAST 5 ENTRIES
+        ### SHOW RECENT ENTRIES
         st.subheader("")
         st.header("Recent entries")
         display_recent_entries(log_data)
