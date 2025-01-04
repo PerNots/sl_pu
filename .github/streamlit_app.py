@@ -560,7 +560,8 @@ if username and pincode:
             # If the button is pressed or Enter is hit, log the data
             if submit_button:
                 # Get the current timestamp
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                #timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                timestamp = german_time.strftime("%Y-%m-%d %H:%M:%S")
                 # Create a DataFrame for the current entry
                 new_entry = pd.DataFrame({"Timestamp": [timestamp], "Pushups": [pushups], "User": [username]})
 
@@ -577,7 +578,7 @@ if username and pincode:
 
                     # Placeholder success message
                     success_message = st.empty()
-                    formatted_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+                    formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
                     success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
                     time.sleep(2)
                     # Clear the message
