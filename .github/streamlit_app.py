@@ -436,7 +436,8 @@ def display_pushup_heatmap(log_data):
 
 
 ### GIMMICK AREA
-# Custom CSS to adjust for dark and light modes
+
+# Custom CSS for the banner without blurry edges
 st.markdown(
     """
     <style>
@@ -445,6 +446,7 @@ st.markdown(
         overflow: hidden; /* Ensures content outside is not visible */
         width: 100%;
         height: 50px; /* Adjust height as needed */
+        background-color: var(--background-color); /* Dynamic background color */
     }
 
     .banner-text {
@@ -453,6 +455,7 @@ st.markdown(
         display: inline-block;
         animation: scroll-text 10s linear infinite;
         font-size: 24px; /* Adjust font size */
+        color: var(--text-color); /* Dynamic text color */
         padding-left: 100%; /* Start the text off-screen to the right */
     }
 
@@ -469,20 +472,16 @@ st.markdown(
     /* Light Mode Styles */
     @media (prefers-color-scheme: light) {
         .banner-container {
-            background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 10%, rgba(255, 255, 255, 0) 90%, rgba(255, 255, 255, 1) 100%);
-        }
-        .banner-text {
-            color: black; /* Black text for light mode */
+            --background-color: #ffffff; /* Solid white background for light mode */
+            --text-color: #000000; /* Black text for light mode */
         }
     }
 
     /* Dark Mode Styles */
     @media (prefers-color-scheme: dark) {
         .banner-container {
-            background: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0) 90%, rgba(0, 0, 0, 1) 100%);
-        }
-        .banner-text {
-            color: white; /* White text for dark mode */
+            --background-color: #000000; /* Solid black background for dark mode */
+            --text-color: #ffffff; /* White text for dark mode */
         }
     }
     </style>
@@ -494,11 +493,12 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">🎉 Welcome to the Pushup Tracker App! Track your progress and stay fit! 🎉</div>
+        <div class="banner-text">Many super new cool features dropped. Hurrah Hurrah. Test them out while they are still warm and drop me suggestions at the bottom of the applet if you have anything you'd like to be added. Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
 
