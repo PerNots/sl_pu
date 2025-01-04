@@ -452,7 +452,7 @@ st.markdown(
         position: absolute;
         white-space: nowrap;
         display: inline-block;
-        animation: scroll-text 20s linear infinite; /* Slower animation */
+        animation: scroll-text 15s linear infinite; /* Slower animation */
         font-size: 24px; /* Adjust font size */
         color: var(--text-color); /* Dynamic text color */
         padding-left: 0; /* Starts immediately without delay */
@@ -462,6 +462,9 @@ st.markdown(
     @keyframes scroll-text {
         0% {
             transform: translateX(100%); /* Start just outside the right edge */
+        }
+        50% {
+            transform: translateX(-50%); /* Keep both texts in view for the middle of the animation */
         }
         100% {
             transform: translateX(-100%); /* End just outside the left edge */
@@ -490,7 +493,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Many super new cool features dropped. Hurrah Hurrah. Test them out while they are still warm and drop me suggestions at the bottom of the applet if you have anything you'd like to be added. Cheers. Happy pushing.</div>
+        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
