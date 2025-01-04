@@ -338,7 +338,8 @@ def display_pushups_today(log_data):
     # Ensure the 'Timestamp' column is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
     # Get today's date (without time component)
-    today = datetime.today().date()
+    #today = datetime.today().date()
+    today = german_time.date()
     # Filter the DataFrame for today's pushups
     today_df = log_data[log_data['Timestamp'].dt.date == today]
     if not today_df.empty:
