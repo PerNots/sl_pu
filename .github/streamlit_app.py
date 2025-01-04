@@ -326,7 +326,7 @@ def display_recent_entries(log_data, num_entries=20):
         st.error(f"Error displaying the recent entries: {e}")
 
 # table giving push ups done on the day by specific user
-def display_pushups_today_sorted(log_data):
+def display_pushups_today(log_data):
     # Ensure the 'Timestamp' column is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
     # Get today's date (without time component)
@@ -343,6 +343,27 @@ def display_pushups_today_sorted(log_data):
     else:
         # Display a message if no pushups were done today
         st.write("No pushups logged for today.")
+
+# table giving the push up average (daily)
+def display_daily_average_pushups(log_data):
+    """
+    Displays a table showing the daily average of pushups for each user, 
+    sorted by the highest average.
+    """
+    # Ensure the 'Timestamp' column is in datetime format
+    log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+    # Extract the date component for grouping
+    log_data['Date'] = log_data['Timestamp'].dt.date
+    # Group by 'Date' and 'User', then sum the pushups
+    daily_totals = log_data.groupby(['Date', 'User'])['Pushups'].sum().reset_index()
+    # Calculate the daily average for each user
+    user_daily_avg = daily_totals.groupby('User')['Pushups'].mean().reset_index()
+    user_daily_avg.rename(columns={'Pushups': 'Daily Average'}, inplace=True)
+    # Sort the table by the daily average in descending order
+    user_daily_avg = user_daily_avg.sort_values(by='Daily Average', ascending=False).reset_index(drop=True)
+    # Display the table
+    st.dataframe(user_daily_avg)
+
 
 ### START OF THE APP'S SCRIPT
 # Title for the app
@@ -431,6 +452,11 @@ if username and pincode:
         st.header("Today's pushups")
         display_pushups_today(log_data)
 
+        ### SHOW AVERAGE OF ALL USERS
+        st.subheader("")
+        st.header("Average pushups per day")
+        display_daily_average_pushups(log_data)
+
         ### VISUALIZATION
         st.subheader("")
         st.header("Visualization")
@@ -474,7 +500,7 @@ if username and pincode:
                     max_value=log_data['Timestamp'].max().date()
                 )
 
-        if st.button("Refresh Visualization"):
+        if st.button("Show/Refresh Visualization"):
             # TODO: make it so that the vis is displayed but only updated by the button
             ## DISPLAY the accumulated push-ups graph
             st.subheader("Accumulated Push-Ups")
@@ -522,6 +548,7 @@ if username and pincode:
         - allow deletion of last few own activities by user
         - handle different timezones via user-database, will timezones register locally or globally?
         - add visualizations that were established in googlesheet in the last years
+        - add heatmap showing when in the day/week pushups are done (thanks Nick)
         - allow users to set personal goals for the year
         - might add different disciplines (squats or pull-ups or w/e)
         - differentiate types of push-ups
