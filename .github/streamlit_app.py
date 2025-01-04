@@ -434,6 +434,60 @@ def display_pushup_heatmap(log_data):
     st.pyplot(plt)
     plt.close()
 
+
+### GIMMICK AREA
+import streamlit as st
+
+# Custom CSS for the scrolling banner
+st.markdown(
+    """
+    <style>
+    .banner-container {
+        position: relative;
+        overflow: hidden; /* Ensures content outside is not visible */
+        width: 100%;
+        height: 50px; /* Adjust height as needed */
+        background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 10%, rgba(255,255,255,0) 90%, rgba(255,255,255,1) 100%);
+    }
+
+    .banner-text {
+        position: absolute;
+        white-space: nowrap;
+        display: inline-block;
+        animation: scroll-text 10s linear infinite;
+        font-size: 24px; /* Adjust font size */
+        color: black;
+        padding-left: 100%; /* Start the text off-screen to the right */
+    }
+
+    @keyframes scroll-text {
+        0% {
+            transform: translateX(0%);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Add the scrolling text in the banner
+st.markdown(
+    """
+    <div class="banner-container">
+        <div class="banner-text">🎉 Welcome to the Pushup Tracker App! Lots of new things added hurrah hurrah 🎉</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+
+
+
+
 ### START OF THE APP'S SCRIPT
 # Title for the app
 st.title("Push-Up Tracker.")
