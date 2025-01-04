@@ -3,8 +3,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import os
-import altair as alt
+from datetime import date
 from datetime import datetime, timedelta
 import time
 import json
