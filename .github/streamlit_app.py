@@ -463,9 +463,6 @@ st.markdown(
         0% {
             transform: translateX(100%); /* Start just outside the right edge */
         }
-        50% {
-            transform: translateX(-50%); /* Keep both texts in view for the middle of the animation */
-        }
         100% {
             transform: translateX(-100%); /* End just outside the left edge */
         }
