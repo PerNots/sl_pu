@@ -325,14 +325,13 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-        # Style the table with HTML and CSS
-         # Check Streamlit theme
-        theme = st.session_state.get("theme", {"base": "light"})  # Default to light theme
-        is_dark_mode = theme.get("base", "light") == "dark"
-
-        # CSS for light and dark mode
+        # Determine current theme
         theme_base = st.get_option("theme.base")  # Fetch the theme from Streamlit options
         is_dark_mode = theme_base == "dark"
+
+        # CSS for light and dark mode
+        background_color = "#0e1117" if is_dark_mode else "#ffffff"  # Dark for dark mode, white for light mode
+        text_color = "#fff" if is_dark_mode else "#000"  # Adjust text color accordingly
 
         # Render the table with styles
         st.markdown(
