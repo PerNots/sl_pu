@@ -326,49 +326,49 @@ def display_recent_entries(log_data, num_entries=20):
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
         st.markdown(
-            """
+            f"""
             <style>
                 /* Common Table Styles */
-                .scrollable-table {
+                .scrollable-table {{
                     max-height: 300px; /* Adjust the height as needed */
                     overflow-y: auto;
                     border: 1px solid #ddd;
-                }
-                .scrollable-table table {
+                }}
+                .scrollable-table table {{
                     width: 100%;
                     border-collapse: collapse;
                     font-size: 14px;
                     text-align: left;
-                }
-                .scrollable-table th, .scrollable-table td {
+                }}
+                .scrollable-table th, .scrollable-table td {{
                     padding: 8px 12px;
                     border: 1px solid #ddd;
-                }
-                .scrollable-table td.comment {
+                }}
+                .scrollable-table td.comment {{
                     width: 100%; /* Let comments take up remaining space */
-                }
+                }}
 
                 /* Light Mode Styles */
-                @media (prefers-color-scheme: light) {
-                    .scrollable-table th {
+                @media (prefers-color-scheme: light) {{
+                    .scrollable-table th {{
                         position: sticky;
                         top: 0;
                         background-color: #ffffff; /* White background for light mode */
                         color: #000000; /* Black text for light mode */
                         z-index: 1;
-                    }
-                }
+                    }}
+                }}
 
                 /* Dark Mode Styles */
-                @media (prefers-color-scheme: dark) {
-                    .scrollable-table th {
+                @media (prefers-color-scheme: dark) {{
+                    .scrollable-table th {{
                         position: sticky;
                         top: 0;
                         background-color: #0e1117; /* Dark background for dark mode */
                         color: #ffffff; /* White text for dark mode */
                         z-index: 1;
-                    }
-                }
+                    }}
+                }}
             </style>
             <div class="scrollable-table">
                 <table>
@@ -392,6 +392,7 @@ def display_recent_entries(log_data, num_entries=20):
             """,
             unsafe_allow_html=True
         )
+
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
