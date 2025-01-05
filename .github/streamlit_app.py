@@ -237,6 +237,11 @@ def display_time_series_pushups(log_data, user_selection):
 
             # Display the chart in Streamlit
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.write("No users selected. Please select at least one user to display the graph.")
+
+    except Exception as e:
+        st.error(f"Error reading or plotting data: {e}")
 
 # dominance graph
 def display_pushups_dominance_with_selection(log_data, user_selection):
