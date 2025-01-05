@@ -573,9 +573,35 @@ if 'logged_in' not in st.session_state:
 if 'username' not in st.session_state:
     st.session_state['username'] = None
 
-# Use sidebar for login (only when not logged in)
 if not st.session_state['logged_in']:
-    with st.sidebar:
+    with st.container():  # This container acts as a modal-like overlay
+        st.markdown(
+            """
+            <style>
+            .login-modal {
+                background-color: rgba(0, 0, 0, 0.5); 
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .login-form {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.markdown('<div class="login-modal"><div class="login-form">', unsafe_allow_html=True)
+
+        # Login UI
         st.header("Login")
         username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
         pincode = st.text_input("Enter PIN Code", type="password", placeholder="PIN")
@@ -587,8 +613,12 @@ if not st.session_state['logged_in']:
                 st.session_state['logged_in'] = True  # Mark as logged in
                 st.session_state['username'] = username  # Store username
                 st.success(f"Welcome, {username}!")
+                time.sleep(1)  # Optionally wait before transitioning
+                st.experimental_rerun()  # Refresh page to remove modal
             else:
                 st.error("Invalid username or PIN!")
+
+        st.markdown('</div></div>', unsafe_allow_html=True)
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:
