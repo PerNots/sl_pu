@@ -447,29 +447,38 @@ def display_user_stats(log_data, user_selection):
         total_pushups = user_data['Pushups'].sum()
 
         # Calculate the average pushups
-        average_pushups = user_data['Pushups'].mean()
+        #average_pushups = user_data['Pushups'].mean()
 
         # Calculate the 7-day floating average
         user_data['7-Day Avg'] = user_data['Pushups'].rolling(window=7, min_periods=1).mean()
 
         # Calculate the expected pushups for 31.12.2025
-        # Assuming the user logs pushups every day on average
         days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
         expected_pushups_2025 = average_pushups * days_to_2025
 
         # Calculate the standard deviation of pushups
         std_dev_pushups = user_data['Pushups'].std()
 
+        # Calculate the average pushups per day since and including 31.12.2024
+        start_date = datetime(2024, 12, 31)
+        user_data_since = user_data[user_data['Timestamp'] >= start_date]
+
+        # Group by day and sum the pushups for each day
+        daily_pushups = user_data_since.groupby(user_data_since['Timestamp'].dt.date)['Pushups'].sum()
+
+        # Calculate the average pushups per day from 31.12.2024 onward
+        average_pushups = daily_pushups.mean()
+
         # Create a summary DataFrame
         stats = {
-            "Metric": ["Total Pushups", "Average Pushups", "7-Day Floating Average", "Expected Pushups for 31.12.2025", "Standard Deviation"],
-            "Value": [total_pushups, average_pushups, user_data['7-Day Avg'].iloc[-1], expected_pushups_2025, std_dev_pushups]
+            "Metric": ["Name", "Total Pushups", "Average Pushups", "7-Day Floating Average", "Expected Pushups for 31.12.2025", "Standard Deviation"],
+            "Value": [username, total_pushups, average_pushups, user_data['7-Day Avg'].iloc[-1], expected_pushups_2025, std_dev_pushups]
         }
         stats_df = pd.DataFrame(stats)
 
         # Display the stats table
-        st.write(f"### {user_selection}'s Pushup Stats")
-        st.dataframe(stats_df)
+        #st.write(f"### {user_selection}'s Pushup Stats")
+        st.dataframe(stats_df,hide_index=True)
 
     except Exception as e:
         st.error(f"Error calculating stats for {user_selection}: {e}")
