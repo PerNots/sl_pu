@@ -161,18 +161,22 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 # assign stable colors
 def generate_user_colors(user_database):
     """
-    Generate stable user colors using the Viridis colormap.
+    Generate stable user colors using the Viridis colormap, excluding the color #440154.
+    
     :param user_database: Dictionary of users (keys) and PINs (values) from Streamlit secrets.
     :return: A dictionary mapping each user to a Viridis color (hex format).
     """
     users = list(user_database.keys())
     num_users = len(users)
     
-    # Normalize the number of users to the Viridis colormap
-    colormap = cm.get_cmap('viridis', num_users)  # Viridis colormap with `num_users` steps
+    # Get the full Viridis colormap
+    colormap = cm.get_cmap('viridis', num_users + 1)  # Generate one extra step
+    
+    # Exclude the first color (#440154) by starting from the second color
+    colors = [colormap(i + 1) for i in range(num_users)]  # Skip the first color
     
     # Assign colors to users
-    user_colors = {user: mcolors.to_hex(colormap(i)) for i, user in enumerate(users)}
+    user_colors = {user: mcolors.to_hex(colors[i]) for i, user in enumerate(users)}
     return user_colors
 
 # graph for accum pushups
@@ -725,6 +729,8 @@ st.markdown(
 ### START OF THE APP'S SCRIPT
 
 USER_COLORS = generate_user_colors(USER_DATABASE)  # Viridis-based color mapping
+
+st.text(USER_COLORS)
 
 # Title for the app
 st.title("Push-Up Tracker.")
