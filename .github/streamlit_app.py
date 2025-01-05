@@ -569,6 +569,9 @@ st.title("Push-Up Tracker.")
 # Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
+if 'username' not in st.session_state:
+    st.session_state['username'] = None  # To store the username after successful login
+
 # Use sidebar for login (more room for input fields)
 if not st.session_state['logged_in']:
     # Automatically open the sidebar on first visit by showing the login UI
@@ -581,6 +584,7 @@ if not st.session_state['logged_in']:
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
             st.session_state['logged_in'] = True  # Mark as logged in
+            st.session_state['username'] = username  # Store username in session state
             st.success(f"Welcome, {username}!")
             # Optionally, wait a moment before removing the login UI
             time.sleep(1)
@@ -597,7 +601,7 @@ if st.session_state['logged_in']:
     #st.success(f"Welcome, {username}!")
     #time.sleep(3)  # Wait for 3 seconds
     #st.empty()  # Clear the success message
-    
+    username = st.session_state['username']
     ### LOAD LOG TO BE DISPLAYED
     log_data = fetch_file_from_drive("pushup_log.csv")
 
