@@ -329,14 +329,12 @@ def display_recent_entries(log_data, num_entries=20):
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
         # Display the recent entries in a scrollable element
-
-        with option_context('display.max_colwidth', 400):
-            st.dataframe(
-                recent_entries,
-                height = 250,  # Set the height of the scrollable area
-                use_container_width = True,
-                hide_index = True
-            )
+        st.dataframe(
+            data = recent_entries,
+            height = 250,  # Set the height of the scrollable area
+            use_container_width = True,
+            hide_index = True
+        )
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
@@ -355,7 +353,8 @@ def display_pushups_today(log_data):
         # Sort by pushups in descending order
         pushups_today = pushups_today.sort_values(by='Pushups', ascending=False).reset_index(drop=True)
         # Display the table with total pushups for each user today
-        st.dataframe(pushups_today)
+        st.dataframe(data=pushups_today, 
+                     hide_index=True)
     else:
         # Display a message if no pushups were done today
         st.write("No pushups logged for today.")
