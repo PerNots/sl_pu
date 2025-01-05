@@ -27,7 +27,6 @@ german_time = utc_time.astimezone(pytz.timezone('Europe/Berlin'))
 
 
 ### GOOGLE DRIVE SETUP
-# TODO: maybe Drive is not needed anymore as now googlesheet takes over syncing
 # Setting the scope for the GoogleDrive API
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
@@ -393,7 +392,7 @@ def display_daily_average_pushups(log_data, start_date="2024-12-31"):
     st.dataframe(user_totals[['User', 'Daily Average']])
 
 # display heatmap
-def display_pushup_heatmap(log_data):
+def display_pushup_heatmap_legacy(log_data):
     """
     Displays a heatmap showing pushup activity by weekday and hour.
     Allows selection of a single user or all users combined.
@@ -447,10 +446,67 @@ def display_pushup_heatmap(log_data):
     st.pyplot(plt)
     plt.close()
 
+def display_pushup_heatmap(log_data):
+    """
+    Displays a heatmap showing pushup activity by weekday and hour.
+    Allows selection of a single user or all users combined.
+
+    :param log_data: DataFrame containing pushup logs with 'Timestamp', 'Pushups', and 'User' columns.
+    """
+    # Ensure 'Timestamp' is in datetime format
+    log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+
+    # Extract weekday and hour from the timestamp
+    log_data['Weekday'] = log_data['Timestamp'].dt.day_name()
+    log_data['Hour'] = log_data['Timestamp'].dt.hour
+
+    # Define weekday order for plotting
+    weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+    # Create a user selection dropdown
+    user_selection = st.selectbox(
+        "Select User", 
+        options=["All Users"] + log_data['User'].unique().tolist(), 
+        index=0
+    )
+
+    # Filter the data for the selected user or keep all users
+    if user_selection != "All Users":
+        filtered_data = log_data[log_data['User'] == user_selection]
+    else:
+        filtered_data = log_data
+
+    # Group by weekday and hour to sum pushups
+    heatmap_data = (
+        filtered_data.groupby(['Weekday', 'Hour'])['Pushups'].sum()
+        .reindex(weekday_order, level=0)  # Ensure correct weekday order
+        .unstack(fill_value=0)  # Reshape for heatmap
+    )
+
+    # Plot the heatmap using Plotly
+    fig = px.imshow(
+        heatmap_data.values, 
+        labels=dict(x="Hour", y="Weekday", color="Total Pushups"),
+        x=heatmap_data.columns,
+        y=heatmap_data.index,
+        color_continuous_scale="YlGnBu",
+        title=f"Pushup Activity Heatmap ({user_selection})"
+    )
+
+    # Update layout for better visualization
+    fig.update_layout(
+        xaxis_title="Hour",
+        yaxis_title="Weekday",
+        coloraxis_colorbar=dict(title="Total Pushups"),
+        template="plotly_dark" if st.session_state.get("theme", {"base": "light"})["base"] == "dark" else "plotly",
+        height=500
+    )
+
+    # Display the heatmap in Streamlit
+    st.plotly_chart(fig)
+
 
 ### GIMMICK AREA
-background = st.get_option("theme.base")
-st.header(background)
 # Custom CSS for the banner
 st.markdown(
     """
@@ -487,7 +543,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 # Add the scrolling text in the banner
 st.markdown(
