@@ -353,7 +353,7 @@ def display_recent_entries(log_data, num_entries=20):
                     .scrollable-table th {{
                         position: sticky;
                         top: 0;
-                        background-color: #ffffff; /* White background for light mode */
+                        background-color: #f0f2f6; /* White background for light mode */
                         color: #000000; /* Black text for light mode */
                         z-index: 1;
                     }}
@@ -364,7 +364,7 @@ def display_recent_entries(log_data, num_entries=20):
                     .scrollable-table th {{
                         position: sticky;
                         top: 0;
-                        background-color: #0e1117; /* Dark background for dark mode */
+                        background-color: #262730; /* Dark background for dark mode */
                         color: #ffffff; /* White text for dark mode */
                         z-index: 1;
                     }}
