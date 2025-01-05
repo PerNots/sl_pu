@@ -68,3 +68,44 @@ else:
 
 
     
+## Filter before visualization
+## date filter was never used though
+### FILTER THE DATA FOR VISUALISATION
+    ## USER FILTER
+    st.subheader("Filter")
+    user_selection = st.multiselect(
+        "Select Users",
+        log_data['User'].unique(),
+        default=list(log_data['User'].unique())  # Set default to all unique users
+        )
+    
+    ## DATE FILTER
+    col1, col2 = st.columns([1, 1])
+    with col2:
+        # Date range selection for end date
+        max_date = datetime.strptime("2025-12-31", "%Y-%m-%d").date()
+        end_date = st.date_input(
+            "End Date",
+            value=max_date if max_date else datetime.now().date(),  # Default to the max date in the data or today
+            min_value=log_data['Timestamp'].min().date(),
+            max_value=max_date
+        )
+
+    with col1:
+        # Set the start date to 90 days before the end date or the minimum date in the data
+        # This code will be executed after the end_date has been set
+        if 'end_date' in locals():  # Check if end_date has been set
+            start_date = st.date_input(
+                "Start Date",
+                value=(datetime.combine(end_date, datetime.min.time()) - timedelta(days=90)).date(),
+                min_value=log_data['Timestamp'].min().date(),
+                max_value=end_date
+            )
+        else:
+            # Handle the case where end_date is not yet defined
+            start_date = st.date_input(
+                "Start Date",
+                value=log_data['Timestamp'].min().date(),
+                min_value=log_data['Timestamp'].min().date(),
+                max_value=log_data['Timestamp'].max().date()
+            )

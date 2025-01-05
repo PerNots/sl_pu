@@ -392,60 +392,6 @@ def display_daily_average_pushups(log_data, start_date="2024-12-31"):
     st.dataframe(user_totals[['User', 'Daily Average']])
 
 # display heatmap
-def display_pushup_heatmap_legacy(log_data):
-    """
-    Displays a heatmap showing pushup activity by weekday and hour.
-    Allows selection of a single user or all users combined.
-
-    :param log_data: DataFrame containing pushup logs with 'Timestamp', 'Pushups', and 'User' columns.
-    """
-    # Ensure 'Timestamp' is in datetime format
-    log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
-
-    # Extract weekday and hour from the timestamp
-    log_data['Weekday'] = log_data['Timestamp'].dt.day_name()
-    log_data['Hour'] = log_data['Timestamp'].dt.hour
-
-    # Define weekday order for plotting
-    weekday_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-    # Create a user selection dropdown
-    user_selection = st.selectbox(
-        "Select User", 
-        options=["All Users"] + log_data['User'].unique().tolist(), 
-        index=0
-    )
-
-    # Filter the data for the selected user or keep all users
-    if user_selection != "All Users":
-        filtered_data = log_data[log_data['User'] == user_selection]
-    else:
-        filtered_data = log_data
-
-    # Group by weekday and hour to sum pushups
-    heatmap_data = (
-        filtered_data.groupby(['Weekday', 'Hour'])['Pushups'].sum()
-        .reindex(weekday_order, level=0)  # Ensure correct weekday order
-        .unstack(fill_value=0)  # Reshape for heatmap
-    )
-        # Plot the heatmap
-    plt.figure(figsize=(12, 6))
-    sns.heatmap(
-        heatmap_data, 
-        annot=True, 
-        fmt=".0f", 
-        cmap="YlGnBu", 
-        cbar_kws={'label': 'Total Pushups'}
-    )
-    plt.title(f"Pushup Activity Heatmap ({user_selection})")
-    plt.xlabel("Hour")
-    plt.ylabel("Weekday")
-    plt.tight_layout()
-
-    # Display the heatmap in Streamlit
-    st.pyplot(plt)
-    plt.close()
-
 def display_pushup_heatmap(log_data):
     """
     Displays a heatmap showing pushup activity by weekday and hour.
@@ -675,45 +621,10 @@ if st.session_state['logged_in']:
     ### VISUALIZATION
     st.subheader("")
     st.header("Visualization")
-    ### FILTER THE DATA FOR VISUALISATION
-    ## USER FILTER
-    st.subheader("Filter")
-    user_selection = st.multiselect(
-        "Select Users",
-        log_data['User'].unique(),
-        default=list(log_data['User'].unique())  # Set default to all unique users
-        )
     
-    ## DATE FILTER
-    col1, col2 = st.columns([1, 1])
-    with col2:
-        # Date range selection for end date
-        max_date = datetime.strptime("2025-12-31", "%Y-%m-%d").date()
-        end_date = st.date_input(
-            "End Date",
-            value=max_date if max_date else datetime.now().date(),  # Default to the max date in the data or today
-            min_value=log_data['Timestamp'].min().date(),
-            max_value=max_date
-        )
+    ### FILTER SECTION WAS REMOVED HERE BECAUSE PLOTLY IS CAPABLE OF DOING THIS
 
-    with col1:
-        # Set the start date to 90 days before the end date or the minimum date in the data
-        # This code will be executed after the end_date has been set
-        if 'end_date' in locals():  # Check if end_date has been set
-            start_date = st.date_input(
-                "Start Date",
-                value=(datetime.combine(end_date, datetime.min.time()) - timedelta(days=90)).date(),
-                min_value=log_data['Timestamp'].min().date(),
-                max_value=end_date
-            )
-        else:
-            # Handle the case where end_date is not yet defined
-            start_date = st.date_input(
-                "Start Date",
-                value=log_data['Timestamp'].min().date(),
-                min_value=log_data['Timestamp'].min().date(),
-                max_value=log_data['Timestamp'].max().date()
-            )
+    user_selection = log_data['User'].unique(),
 
     if st.button("Show/Refresh Visualization"):
         # TODO: make it so that the vis is displayed but only updated by the button
@@ -742,12 +653,13 @@ if st.session_state['logged_in']:
             log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
             log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
             # user selection for 2022
-            user_selection_2022 = st.multiselect(
-                "Select Users",
-                log_data_2022['User'].unique(),
-                default=list(log_data_2022['User'].unique()),  # Set default to all unique users
-                key="user_selection_2022"
-                )
+            #user_selection_2022 = st.multiselect(
+            #    "Select Users",
+            #    log_data_2022['User'].unique(),
+            #    default=list(log_data_2022['User'].unique()),  # Set default to all unique users
+            #    key="user_selection_2022"
+            #    )
+            user_selection_2022 = log_data_2022['User'].unique()
             display_accumulated_pushups(log_data_2022, user_selection_2022)
             display_time_series_pushups(log_data_2022, user_selection_2022)
 
