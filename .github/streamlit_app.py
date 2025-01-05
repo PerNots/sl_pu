@@ -914,7 +914,6 @@ if st.session_state['logged_in']:
     - might add different disciplines (squats or pull-ups or w/e)
     - differentiate types of push-ups
     - tackle possible issues when multiple users are adding push-ups at the same time
-    - stable colors per user in the graphs
     - add prizes (cash or sexual favors. tbd.)
     '''
 
