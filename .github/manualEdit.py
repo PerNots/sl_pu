@@ -153,5 +153,14 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 
 
 data = fetch_file_from_drive("pushup_log.csv")
-data = data.iloc[0:0]
+#data = data.iloc[0:0] # removes everything but the header
+
+data["comment"] = ""
+
+
+
+
+
+
+
 push_file_to_drive(data, "pushup_log.csv")

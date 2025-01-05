@@ -498,7 +498,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Cheers. Happy pushing.</div>
+        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Sorry to the Estonians :(. Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
@@ -558,13 +558,19 @@ if username and pincode:
                 # Submit button inside the form and aligned with the bottom of the input
                 submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
 
+            # Optional comment input
+            comment = st.text_input("Add a comment (optional):")
+
             # If the button is pressed or Enter is hit, log the data
             if submit_button:
                 # Get the current timestamp
                 #timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 timestamp = german_time.strftime("%Y-%m-%d %H:%M:%S")
                 # Create a DataFrame for the current entry
-                new_entry = pd.DataFrame({"Timestamp": [timestamp], "Pushups": [pushups], "User": [username]})
+                new_entry = pd.DataFrame({"Timestamp": [timestamp], 
+                                          "Pushups": [pushups], 
+                                          "User": [username],
+                                          "comment":[comment if comment.strip() else None]})
 
                 # Try to append to the existing log file or create a new one
                 # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
