@@ -760,8 +760,9 @@ if not st.session_state['logged_in']:
             st.error("Invalid username or PIN!")
 
 # Initialize session state for log_data if not already present
+### LOAD LOG TO BE DISPLAYED
 if 'log_data' not in st.session_state:
-    st.session_state.log_data = pd.DataFrame(columns=["Timestamp", "Pushups", "User", "comment"])
+    st.session_state.log_data = fetch_file_from_drive("pushup_log.csv")
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:
@@ -771,7 +772,7 @@ if st.session_state['logged_in']:
     #st.empty()  # Clear the success message
     username = st.session_state['username']
     ### LOAD LOG TO BE DISPLAYED
-    log_data = fetch_file_from_drive("pushup_log.csv")
+    #log_data = fetch_file_from_drive("pushup_log.csv")
 
     ## ADD PUSH-UPS
     # Create a form to group the input and button together
