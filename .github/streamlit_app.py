@@ -578,7 +578,8 @@ if not st.session_state['logged_in']:
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
-            username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
+            #username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
+            username = st.text_input("Enter Username", label_visibility="collapsed", placeholder="Username")
         # PIN code input field
         with col2:
             pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
