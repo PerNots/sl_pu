@@ -837,9 +837,9 @@ if st.session_state['logged_in']:
     ### SHOW AVERAGE OF ALL USERS
     st.subheader("")
     with st.expander("Average pushups per day"):
-        display_daily_average_pushups(log_data)
+        display_daily_average_pushups(st.session_state.log_data)
     with st.expander ("Heatmap of pushups"):
-        display_pushup_heatmap(log_data)
+        display_pushup_heatmap(st.session_state.log_data)
 
     ### VISUALIZATION
     st.subheader("")
@@ -847,34 +847,34 @@ if st.session_state['logged_in']:
     
     ### FILTER SECTION WAS REMOVED HERE BECAUSE PLOTLY IS CAPABLE OF DOING THIS
 
-    user_selection = list(log_data['User'].unique())
+    user_selection = list(st.session_state.log_data['User'].unique())
 
     if st.button("Show/Refresh Visualization"):
         # TODO: make it so that the vis is displayed but only updated by the button
         ## DISPLAY the accumulated push-ups graph
         st.subheader("Accumulated Push-Ups")
         st.text("Accumulated, unstacked")
-        display_accumulated_pushups(log_data, user_selection)
+        display_accumulated_pushups(st.session_state.log_data, user_selection)
 
         ## DISPLAY the original push-ups over time graph
         st.subheader("Push-Ups Over Time")
         st.text("Not-accumulated, unstacked")
-        display_time_series_pushups(log_data, user_selection)
+        display_time_series_pushups(st.session_state.log_data, user_selection)
 
         ## DISPLAY dominance plot
         st.subheader("Pushup dominance")
         st.text("Percentage of all pushups done by each user per day. Current user is always the bottommost line.")
-        display_pushups_dominance_with_selection(log_data, user_selection, username)
+        display_pushups_dominance_with_selection(st.session_state.log_data, user_selection, username)
 
         ## DISPLAY total pushups done within the project
         st.subheader("Total pushups done for this tracker")
         st.text("Accumulated, stacked")
-        display_total_accumulated_pushups_by_user(log_data, username)
+        display_total_accumulated_pushups_by_user(st.session_state.log_data, username)
 
         ## DISPLAY TODO:
         st.subheader("Total pushups done per day and how much each user contributed")
         st.text("Not-accumulated, stacked")
-        display_daily_pushup_contributions(log_data, username)
+        display_daily_pushup_contributions(st.session_state.log_data, username)
 
 
     ## SHOW LEGACY DATA FROM 2022
