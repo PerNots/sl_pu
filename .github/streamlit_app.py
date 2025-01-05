@@ -352,8 +352,8 @@ def display_recent_entries(log_data, num_entries=20):
                 .scrollable-table th {{
                     position: sticky;
                     top: 0;
-                    background-color: #7e7e7e; /* Medium gray background for both modes */
-                    color: #ffffff; /* White text for contrast */
+                    /* background-color: #7e7e7e;  Medium gray background for both modes */
+                    /* color: #ffffff;  White text for contrast */
                     z-index: 1;
                 }}
             </style>
