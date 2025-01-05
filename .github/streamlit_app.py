@@ -332,7 +332,7 @@ def display_recent_entries(log_data, num_entries=20):
         # Enable auto-sizing for all columns (for dynamic sizing)
         gb.configure_column("comment", width=500, resizable=True)  # comment column is dynamic
         # Scrollable table with pagination
-        gb.configure_pagination(pagination=True, paginationPageSize=10)
+        gb.configure_pagination(paginationPageSize=10)
         grid_options = gb.build()
         # Display the grid
         AgGrid(recent_entries, gridOptions=grid_options, height=350, fit_columns_on_grid_load=True)
