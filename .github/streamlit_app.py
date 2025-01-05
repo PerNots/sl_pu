@@ -777,7 +777,7 @@ if st.session_state['logged_in']:
 
         ## DISPLAY total pushups done within the project
         st.subheader("Total pushups done for this tracker")
-        display_total_accumulated_pushups_by_user(log_data)
+        display_total_accumulated_pushups_by_user(log_data, username)
 
     ## SHOW LEGACY DATA FROM 2022
     st.subheader("")
