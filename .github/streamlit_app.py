@@ -454,7 +454,7 @@ def display_user_stats(log_data, user_selection):
 
         # Calculate the expected pushups for 31.12.2025
         # Assuming the user logs pushups every day on average
-        days_to_2025 = (datetime.datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
+        days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
         expected_pushups_2025 = average_pushups * days_to_2025
 
         # Calculate the standard deviation of pushups
@@ -469,11 +469,10 @@ def display_user_stats(log_data, user_selection):
 
         # Display the stats table
         st.write(f"### {user_selection}'s Pushup Stats")
-        st.dataframe(stats_df, hide_index=True)
+        st.dataframe(stats_df)
 
     except Exception as e:
         st.error(f"Error calculating stats for {user_selection}: {e}")
-
 
 # display heatmap
 def display_pushup_heatmap(log_data):
@@ -823,15 +822,13 @@ if st.session_state['logged_in']:
     # Create a form to group the input and button together
     with st.form("log_pushups_form"):
         # Create two columns to place the input field and button side by side
+        # Input field for the number of push-ups (broad column)
+        pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1, label_visibility="collapsed")
         col1, col2 = st.columns([3, 1], vertical_alignment="bottom")  # Adjust the width ratio as needed
         with col1:
-            # Input field for the number of push-ups (broad column)
-            pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1, label_visibility="collapsed")
-
-        with col2:
             # Optional comment input (right column)
             comment = st.text_input("Add a comment (optional):", label_visibility="collapsed")
-
+        with col2:
             # Submit button (aligned with the bottom of the comment input)
             submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
 
