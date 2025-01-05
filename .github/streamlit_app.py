@@ -244,19 +244,24 @@ def display_time_series_pushups(log_data, user_selection):
         st.error(f"Error reading or plotting data: {e}")
 
 # dominance graph
-def display_pushups_dominance_with_selection(log_data, user_selection):
+def display_pushups_dominance_with_selection(log_data, user_selection, username):
     """
     Displays a stacked line chart showing the dominance of pushups by user,
-    with the option to select users to include in the plot.
+    with the current user always as the bottom-most line.
 
     :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
     :param user_selection: List of selected users to filter the data for plotting.
+    :param username: The current user, who will always appear as the bottom-most line.
     """
     try:
         # Ensure 'Timestamp' is in datetime format
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
         
         if user_selection:
+            # Ensure the current user is in the selection
+            if username not in user_selection:
+                user_selection.append(username)
+            
             # Group by date and user, then sum the pushups
             log_data['Date'] = log_data['Timestamp'].dt.date
             daily_pushups = log_data[log_data['User'].isin(user_selection)].groupby(['Date', 'User'])['Pushups'].sum().unstack(fill_value=0)
@@ -264,11 +269,15 @@ def display_pushups_dominance_with_selection(log_data, user_selection):
             # Normalize the data so each row sums to 100%
             daily_pushups_percent = daily_pushups.div(daily_pushups.sum(axis=1), axis=0) * 100
             
+            # Reorder columns so the current user is the first one
+            user_order = [username] + [user for user in user_selection if user != username]
+            daily_pushups_percent = daily_pushups_percent[user_order]
+            
             # Create a Plotly figure for stacked lines
             fig = go.Figure()
 
-            # Add each user as a separate line
-            for user in user_selection:
+            # Add each user as a separate line in the specified order
+            for user in user_order:
                 fig.add_trace(go.Scatter(
                     x=daily_pushups_percent.index,
                     y=daily_pushups_percent[user],
@@ -693,7 +702,7 @@ if st.session_state['logged_in']:
 
         ## DISPLAY dominance plot
         st.subheader("Pushup dominance")
-        display_pushups_dominance_with_selection(log_data, user_selection)
+        display_pushups_dominance_with_selection(log_data, user_selection, username)
 
         ## DISPLAY total pushups done within the project
         st.subheader("Total pushups done for this tracker")
