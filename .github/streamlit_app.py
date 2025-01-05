@@ -326,43 +326,63 @@ def display_recent_entries(log_data, num_entries=20):
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
         # Style the table with HTML and CSS
+         # Check Streamlit theme
+        theme = st.session_state.get("theme", {"base": "light"})  # Default to light theme
+        is_dark_mode = theme.get("base", "light") == "dark"
+
+        # CSS for light and dark mode
+        background_color = "#333" if is_dark_mode else "#f4f4f4"
+        text_color = "#fff" if is_dark_mode else "#000"
+
+        # Render the table with styles
         st.markdown(
             f"""
             <style>
-                .recent-entries-table {{
+                .scrollable-table {{
+                    max-height: 300px; /* Adjust the height as needed */
+                    overflow-y: auto;
+                    border: 1px solid #ddd;
+                }}
+                .scrollable-table table {{
                     width: 100%;
                     border-collapse: collapse;
                     font-size: 14px;
                     text-align: left;
                 }}
-                .recent-entries-table th, .recent-entries-table td {{
+                .scrollable-table th, .scrollable-table td {{
                     padding: 8px 12px;
                     border: 1px solid #ddd;
                 }}
-                .recent-entries-table th {{
-                    background-color: #f4f4f4;
+                .scrollable-table th {{
+                    position: sticky;
+                    top: 0;
+                    background-color: {background_color};
+                    color: {text_color};
+                    z-index: 1;
                 }}
-                .recent-entries-table td.comment {{
+                .scrollable-table td.comment {{
                     width: 100%; /* Let comments take up remaining space */
                 }}
             </style>
-            <table class="recent-entries-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Pushups</th>
-                        <th>Comment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {''.join([
-                        f"<tr><td>{row.Date}</td><td>{row.Time}</td><td>{row.User}</td><td>{row.Pushups}</td><td class='comment'>{row.comment or ''}</td></tr>"
-                        for _, row in recent_entries.iterrows()
-                    ])}
-                </tbody>
-            </table>
+            <div class="scrollable-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Pushups</th>
+                            <th>Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {''.join([
+                            f"<tr><td>{row.Date}</td><td>{row.Time}</td><td>{row.User}</td><td>{row.Pushups}</td><td class='comment'>{row.comment or ''}</td></tr>"
+                            for _, row in recent_entries.iterrows()
+                        ])}
+                    </tbody>
+                </table>
+            </div>
             """,
             unsafe_allow_html=True
         )
