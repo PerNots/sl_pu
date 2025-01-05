@@ -497,7 +497,7 @@ def display_pushup_heatmap(log_data):
     fig.update_layout(
         xaxis_title="Hour",
         yaxis_title="Weekday",
-        coloraxis_colorbar=dict(title="Total Pushups"),
+        coloraxis_colorbar=dict(title=""),
         template="plotly_dark" if st.session_state.get("theme", {"base": "light"})["base"] == "dark" else "plotly",
         height=500
     )
@@ -578,8 +578,7 @@ if not st.session_state['logged_in']:
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
-            #username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
-            username = st.text_input("Enter Username", label_visibility="collapsed", placeholder="Username")
+            username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
         # PIN code input field
         with col2:
             pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
