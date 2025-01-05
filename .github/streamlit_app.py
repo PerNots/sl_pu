@@ -574,15 +574,16 @@ if 'username' not in st.session_state:
     st.session_state['username'] = None
 
 if not st.session_state['logged_in']:
-    col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
-    # User selection dropdown
-    with col1:
-        username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
-    # PIN code input field
-    with col2:
-        pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
-    with col3:
-        login = st.button("Login",use_container_width=True)
+    with st.form(key='login_form'):
+        col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
+        # User selection dropdown
+        with col1:
+            username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
+        # PIN code input field
+        with col2:
+            pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
+        with col3:
+            login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
 
     # Login Validation
     if login:
