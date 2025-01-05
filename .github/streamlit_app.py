@@ -570,30 +570,29 @@ st.title("Push-Up Tracker.")
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 if 'username' not in st.session_state:
-    st.session_state['username'] = None  # To store the username after successful login
+    st.session_state['username'] = None
 
-# Use sidebar for login (more room for input fields)
+# Full-page login screen (appears before login)
 if not st.session_state['logged_in']:
-    # Automatically open the sidebar on first visit by showing the login UI
-    st.sidebar.header("Login")
-    username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
-    pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
-    login = st.sidebar.button("Login")
+    login_container = st.empty()  # Create an empty placeholder for the login form
 
-    # Login Validation
-    if login:
-        if username in USER_DATABASE and pincode == USER_DATABASE[username]:
-            st.session_state['logged_in'] = True  # Mark as logged in
-            st.session_state['username'] = username  # Store username in session state
-            st.success(f"Welcome, {username}!")
-            # Optionally, wait a moment before removing the login UI
-            time.sleep(1)
-        else:
-            st.sidebar.error("Invalid username or PIN!")
-else:
-    # If already logged in, show a message or the main content
-    st.sidebar.empty()  # Hide the login form when logged in
-    #st.success(f"You're logged in as {username}!")
+    with login_container:
+        # Display the login UI
+        st.title("Login")
+        username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
+        pincode = st.text_input("Enter PIN Code", type="password", placeholder="PIN")
+        login = st.button("Login")
+
+        # Login Validation
+        if login:
+            if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+                st.session_state['logged_in'] = True  # Mark as logged in
+                st.session_state['username'] = username  # Store username
+                st.success(f"Welcome, {username}!")
+                time.sleep(1)  # Optionally wait before transitioning
+                login_container.empty()  # Clear the login UI
+            else:
+                st.error("Invalid username or PIN!")
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:

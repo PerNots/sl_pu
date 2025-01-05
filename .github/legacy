@@ -21,7 +21,7 @@ st.title("")
 
 
 
-# old login logic
+# old login logic in main window
 # Side-by-side layout for username and PIN code
 #col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
 # User selection dropdown
@@ -32,3 +32,39 @@ st.title("")
 #    pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
 #with col3:
 #    login = st.button("Login",use_container_width=True)
+
+
+#login logic in sidebar
+# Login-part
+# Initialize session state
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+if 'username' not in st.session_state:
+    st.session_state['username'] = None  # To store the username after successful login
+
+# Use sidebar for login (more room for input fields)
+if not st.session_state['logged_in']:
+    # Automatically open the sidebar on first visit by showing the login UI
+    st.sidebar.header("Login")
+    username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
+    pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
+    login = st.sidebar.button("Login")
+
+    # Login Validation
+    if login:
+        if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+            st.session_state['logged_in'] = True  # Mark as logged in
+            st.session_state['username'] = username  # Store username in session state
+            st.success(f"Welcome, {username}!")
+            # Optionally, wait a moment before removing the login UI
+            time.sleep(1)
+        else:
+            st.sidebar.error("Invalid username or PIN!")
+else:
+    # If already logged in, show a message or the main content
+    st.sidebar.empty()  # Hide the login form when logged in
+    #st.success(f"You're logged in as {username}!")
+
+
+
+    
