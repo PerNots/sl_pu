@@ -2,17 +2,14 @@
 # TODO: remove unneeded packages via pipreqs
 import streamlit as st
 import pandas as pd
-from pandas import option_context
 from datetime import datetime, timedelta, date
 import time
 import json
 import io
 import plotly.express as px
 import plotly.graph_objects as go
-import seaborn as sns
 import pytz
 from datetime import datetime
-import matplotlib.pyplot as plt
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -387,9 +384,9 @@ def display_daily_average_pushups(log_data, start_date="2024-12-31"):
     
     # Sort the table by the daily average in descending order
     user_totals = user_totals.sort_values(by='Daily Average', ascending=False).reset_index(drop=True)
-    
+    user_totals['Daily Average'] = user_totals['Daily Average'].round(1)
     # Display the table
-    st.dataframe(user_totals[['User', 'Daily Average']])
+    st.dataframe(user_totals[['User', 'Daily Average']], hide_index=True)
 
 # display heatmap
 def display_pushup_heatmap(log_data):
