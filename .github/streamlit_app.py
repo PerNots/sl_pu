@@ -457,22 +457,26 @@ def display_user_stats(log_data, user_selection):
         daily_pushups = user_data_since.groupby(user_data_since['Timestamp'].dt.date)['Pushups'].sum()
 
         # Calculate the average pushups per day from 31.12.2024 onward
-        average_pushups = daily_pushups.mean()
+        average_pushups = daily_pushups.mean().round(1)
 
-        # Calculate the 7-day floating average
-        user_data['7-Day Avg'] = user_data['Pushups'].rolling(window=7, min_periods=1).mean()
+        # Group by day and sum the pushups for each day
+        user_data['Date'] = user_data['Timestamp'].dt.date
+        daily_pushups = user_data.groupby('Date')['Pushups'].sum()
+
+        # Calculate the 7-day floating average over the daily sum
+        daily_pushups_7day_avg = daily_pushups.rolling(window=7, min_periods=1).mean()
 
         # Calculate the expected pushups for 31.12.2025
         days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
-        expected_pushups_2025 = average_pushups * days_to_2025
+        expected_pushups_2025 = (average_pushups * days_to_2025).round(1)
 
         # Calculate the standard deviation of pushups
-        std_dev_pushups = user_data['Pushups'].std()
+        std_dev_pushups = user_data['Pushups'].std().round(1)
 
         # Create a summary DataFrame
         stats = {
             "Metric": ["Name", "Total Pushups", "Average Pushups", "7-Day Floating Average", "Expected Pushups for 31.12.2025", "Standard Deviation"],
-            "Value": [username, total_pushups, average_pushups, user_data['7-Day Avg'].iloc[-1], expected_pushups_2025, std_dev_pushups]
+            "Value": [username, total_pushups, average_pushups, daily_pushups_7day_avg.iloc[-1], expected_pushups_2025, std_dev_pushups]
         }
         stats_df = pd.DataFrame(stats)
 
