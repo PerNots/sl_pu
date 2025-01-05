@@ -291,7 +291,10 @@ def display_pushups_dominance_with_selection(log_data, user_selection, username)
             fig.update_layout(
                 xaxis_title="Date",
                 yaxis_title="Percentage of Pushups",
-                xaxis=dict(tickformat="%Y-%m-%d"),
+                xaxis=dict(
+                    tickformat="%b %-d",  # Display "Jan 1", "Jan 2", etc.
+                    tickangle=0  # Keep ticks horizontal
+                ),
                 legend_title="User",
                 template="plotly_white",
                 height=500,
