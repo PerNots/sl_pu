@@ -12,7 +12,7 @@ import seaborn as sns
 import pytz
 from datetime import datetime
 import matplotlib.pyplot as plt
-#import matplotlib.pyplot as plt
+from st_aggrid import AgGrid, GridOptionsBuilder
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -154,7 +154,9 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 
 # git add .
 # git commit -m "Added Table with last 5 entries"
-# git push origin main
+# git push origin <branch>
+# git checkout <branch>
+# git merge <branch>
 
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
@@ -325,61 +327,15 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-        st.markdown(
-            f"""
-            <style>
-                /* Common Table Styles */
-                .scrollable-table {{
-                    max-height: 300px; /* Adjust the height as needed */
-                    overflow-y: auto;
-                    border: 1px solid #333;
-                    margin-top: 30px; /* Add a bit of space on top for the header */
-                }}
-                .scrollable-table table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 14px;
-                    text-align: left;
-                }}
-                .scrollable-table th, .scrollable-table td {{
-                    padding: 8px 12px;
-                    border: 1px solid #333;
-                }}
-                .scrollable-table td.comment {{
-                    width: 100%; /* Let comments take up remaining space */
-                }}
-
-                /* Header Style for Both Light and Dark Modes */
-                .scrollable-table th {{
-                    position: sticky;
-                    top: 0;
-                    z-index: 1;  /* Ensure the header stays on top */
-                    background-color: transparent; /* No background, just natural blending with the page */
-                }}
-            </style>
-            <div class="scrollable-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>User</th>
-                            <th>Pushups</th>
-                            <th>Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {''.join([
-                            f"<tr><td>{row.Date}</td><td>{row.Time}</td><td>{row.User}</td><td>{row.Pushups}</td><td class='comment'>{row.comment or ''}</td></tr>"
-                            for _, row in recent_entries.iterrows()
-                        ])}
-                    </tbody>
-                </table>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
+        # Create Ag-Grid options
+        gb = GridOptionsBuilder.from_dataframe(recent_entries)
+        # Enable auto-sizing for all columns (for dynamic sizing)
+        gb.configure_column("comment", width=500, resizable=True)  # comment column is dynamic
+        # Scrollable table with pagination
+        gb.configure_pagination(pagination=True, paginationPageSize=10)
+        grid_options = gb.build()
+        # Display the grid
+        AgGrid(recent_entries, gridOptions=grid_options, height=350, fit_columns_on_grid_load=True)
 
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
