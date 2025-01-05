@@ -2,6 +2,7 @@
 # TODO: remove unneeded packages via pipreqs
 import streamlit as st
 import pandas as pd
+from pandas import option_context
 from datetime import datetime, timedelta, date
 import time
 import json
@@ -328,12 +329,14 @@ def display_recent_entries(log_data, num_entries=20):
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
         # Display the recent entries in a scrollable element
-        st.dataframe(
-            recent_entries,
-            height = 250,  # Set the height of the scrollable area
-            use_container_width = True,
-            hide_index = True
-        )
+
+        with option_context('display.max_colwidth', 400):
+            st.dataframe(
+                recent_entries,
+                height = 250,  # Set the height of the scrollable area
+                use_container_width = True,
+                hide_index = True
+            )
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
