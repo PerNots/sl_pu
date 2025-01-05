@@ -577,25 +577,15 @@ if not st.session_state['logged_in']:
     pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
     login = st.sidebar.button("Login")
 
-# Side-by-side layout for username and PIN code
-#col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
-# User selection dropdown
-#with col1:
-#    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
-# PIN code input field
-#with col2:
-#    pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
-#with col3:
-#    login = st.button("Login",use_container_width=True)
-
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+            st.session_state['logged_in'] = True  # Mark as logged in
             st.success(f"Welcome, {username}!")
             #time.sleep(3)
             #st.empty()
         else:
-            st.error("Invalid username or PIN code. Please try again.")
+            st.sidebar.error("Invalid username or PIN!")
 else:
     # Content after login
     st.sidebar.write(f"Welcome back!")
@@ -605,220 +595,218 @@ else:
 
 
 ### MAIN CONTENT that is displayed when login was successfull
-if username and pincode:
-    if USER_DATABASE.get(username) == pincode:
-        #st.success(f"Welcome, {username}!")
-        #time.sleep(3)  # Wait for 3 seconds
-        #st.empty()  # Clear the success message
-        
-        ### LOAD LOG TO BE DISPLAYED
-        log_data = fetch_file_from_drive("pushup_log.csv")
+if st.session_state['logged_in']:
+    # if USER_DATABASE.get(username) == pincode:
+    #st.success(f"Welcome, {username}!")
+    #time.sleep(3)  # Wait for 3 seconds
+    #st.empty()  # Clear the success message
+    
+    ### LOAD LOG TO BE DISPLAYED
+    log_data = fetch_file_from_drive("pushup_log.csv")
 
-        ## ADD PUSH-UPS
-        # Create a form to group the input and button together
-        with st.form("log_pushups_form"):
-            # Create two columns to place the input field and button side by side
-            col1, col2 = st.columns([3, 1],vertical_alignment="bottom")  # Adjust the width ratio as needed
-            with col1:
-                # Input field for the number of push-ups
-                pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1)
-            with col2:
-                # Submit button inside the form and aligned with the bottom of the input
-                submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
-
-            # Optional comment input
-            comment = st.text_input("Add a comment (optional):")
-
-            # If the button is pressed or Enter is hit, log the data
-            if submit_button:
-                # Get the current timestamp
-                #timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                timestamp = german_time.strftime("%Y-%m-%d %H:%M:%S")
-                # Create a DataFrame for the current entry
-                new_entry = pd.DataFrame({"Timestamp": [timestamp], 
-                                          "Pushups": [pushups], 
-                                          "User": [username],
-                                          "comment":[comment if comment.strip() else None]})
-
-                # Try to append to the existing log file or create a new one
-                # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
-                with st.spinner('Working on it...'):
-                    try:
-                        # fetch file from GoogleDrive to Local
-                        log = fetch_file_from_drive("pushup_log.csv")
-                        # append local file with current push-ups
-                        log = pd.concat([log, new_entry], ignore_index=True)
-
-                        # push the updated local log file to Google Drive
-                        push_file_to_drive(log, "pushup_log.csv")
-
-                        # Placeholder success message
-                        success_message = st.empty()
-                        formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
-                        success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
-                        time.sleep(2)
-                        # Clear the message
-                        success_message.empty()
-
-                    except Exception as e:
-                        st.error(f"Error writing to file: {e}")
-
-        ### SHOW RECENT ENTRIES
-        st.subheader("")
-        st.header("Recent entries")
-        display_recent_entries(log_data)
-        #display_last_five_entries(log_data)
-        
-        ### SHOW TODAYS PUSHUPS PER USER
-        st.subheader("")
-        st.header("Today's pushups")
-        display_pushups_today(log_data)
-
-        ### SHOW AVERAGE OF ALL USERS
-        st.subheader("")
-        with st.expander("Average pushups per day"):
-            display_daily_average_pushups(log_data)
-        with st.expander ("Heatmap of pushups"):
-            display_pushup_heatmap(log_data)
-
-        ### VISUALIZATION
-        st.subheader("")
-        st.header("Visualization")
-        ### FILTER THE DATA FOR VISUALISATION
-        ## USER FILTER
-        st.subheader("Filter")
-        user_selection = st.multiselect(
-            "Select Users",
-            log_data['User'].unique(),
-            default=list(log_data['User'].unique())  # Set default to all unique users
-            )
-        
-        ## DATE FILTER
-        col1, col2 = st.columns([1, 1])
-        with col2:
-            # Date range selection for end date
-            max_date = datetime.strptime("2025-12-31", "%Y-%m-%d").date()
-            end_date = st.date_input(
-                "End Date",
-                value=max_date if max_date else datetime.now().date(),  # Default to the max date in the data or today
-                min_value=log_data['Timestamp'].min().date(),
-                max_value=max_date
-            )
-
+    ## ADD PUSH-UPS
+    # Create a form to group the input and button together
+    with st.form("log_pushups_form"):
+        # Create two columns to place the input field and button side by side
+        col1, col2 = st.columns([3, 1],vertical_alignment="bottom")  # Adjust the width ratio as needed
         with col1:
-            # Set the start date to 90 days before the end date or the minimum date in the data
-            # This code will be executed after the end_date has been set
-            if 'end_date' in locals():  # Check if end_date has been set
-                start_date = st.date_input(
-                    "Start Date",
-                    value=(datetime.combine(end_date, datetime.min.time()) - timedelta(days=90)).date(),
-                    min_value=log_data['Timestamp'].min().date(),
-                    max_value=end_date
+            # Input field for the number of push-ups
+            pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1)
+        with col2:
+            # Submit button inside the form and aligned with the bottom of the input
+            submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
+
+        # Optional comment input
+        comment = st.text_input("Add a comment (optional):")
+
+        # If the button is pressed or Enter is hit, log the data
+        if submit_button:
+            # Get the current timestamp
+            #timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = german_time.strftime("%Y-%m-%d %H:%M:%S")
+            # Create a DataFrame for the current entry
+            new_entry = pd.DataFrame({"Timestamp": [timestamp], 
+                                        "Pushups": [pushups], 
+                                        "User": [username],
+                                        "comment":[comment if comment.strip() else None]})
+
+            # Try to append to the existing log file or create a new one
+            # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
+            with st.spinner('Working on it...'):
+                try:
+                    # fetch file from GoogleDrive to Local
+                    log = fetch_file_from_drive("pushup_log.csv")
+                    # append local file with current push-ups
+                    log = pd.concat([log, new_entry], ignore_index=True)
+
+                    # push the updated local log file to Google Drive
+                    push_file_to_drive(log, "pushup_log.csv")
+
+                    # Placeholder success message
+                    success_message = st.empty()
+                    formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
+                    success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
+                    time.sleep(2)
+                    # Clear the message
+                    success_message.empty()
+
+                except Exception as e:
+                    st.error(f"Error writing to file: {e}")
+
+    ### SHOW RECENT ENTRIES
+    st.subheader("")
+    st.header("Recent entries")
+    display_recent_entries(log_data)
+    #display_last_five_entries(log_data)
+    
+    ### SHOW TODAYS PUSHUPS PER USER
+    st.subheader("")
+    st.header("Today's pushups")
+    display_pushups_today(log_data)
+
+    ### SHOW AVERAGE OF ALL USERS
+    st.subheader("")
+    with st.expander("Average pushups per day"):
+        display_daily_average_pushups(log_data)
+    with st.expander ("Heatmap of pushups"):
+        display_pushup_heatmap(log_data)
+
+    ### VISUALIZATION
+    st.subheader("")
+    st.header("Visualization")
+    ### FILTER THE DATA FOR VISUALISATION
+    ## USER FILTER
+    st.subheader("Filter")
+    user_selection = st.multiselect(
+        "Select Users",
+        log_data['User'].unique(),
+        default=list(log_data['User'].unique())  # Set default to all unique users
+        )
+    
+    ## DATE FILTER
+    col1, col2 = st.columns([1, 1])
+    with col2:
+        # Date range selection for end date
+        max_date = datetime.strptime("2025-12-31", "%Y-%m-%d").date()
+        end_date = st.date_input(
+            "End Date",
+            value=max_date if max_date else datetime.now().date(),  # Default to the max date in the data or today
+            min_value=log_data['Timestamp'].min().date(),
+            max_value=max_date
+        )
+
+    with col1:
+        # Set the start date to 90 days before the end date or the minimum date in the data
+        # This code will be executed after the end_date has been set
+        if 'end_date' in locals():  # Check if end_date has been set
+            start_date = st.date_input(
+                "Start Date",
+                value=(datetime.combine(end_date, datetime.min.time()) - timedelta(days=90)).date(),
+                min_value=log_data['Timestamp'].min().date(),
+                max_value=end_date
+            )
+        else:
+            # Handle the case where end_date is not yet defined
+            start_date = st.date_input(
+                "Start Date",
+                value=log_data['Timestamp'].min().date(),
+                min_value=log_data['Timestamp'].min().date(),
+                max_value=log_data['Timestamp'].max().date()
+            )
+
+    if st.button("Show/Refresh Visualization"):
+        # TODO: make it so that the vis is displayed but only updated by the button
+        ## DISPLAY the accumulated push-ups graph
+        st.subheader("Accumulated Push-Ups")
+        display_accumulated_pushups(log_data, user_selection)
+
+        ## DISPLAY the original push-ups over time graph
+        st.subheader("Push-Ups Over Time")
+        display_time_series_pushups(log_data, user_selection)
+
+        ## DISPLAY dominance plot
+        st.subheader("Pushup dominance")
+        display_pushups_dominance_with_selection(log_data, user_selection)
+
+    ## SHOW LEGACY DATA FROM 2022
+    st.subheader("")
+    st.subheader("Legacy") 
+    # Use session_state to track if the expander is open
+    if 'expander_opened' not in st.session_state:
+        st.session_state.expander_opened = False       
+    with st.expander("2022"):
+        st.session_state.expander_opened = True
+        if st.session_state.expander_opened:
+        # fetch 2022 data from GoogleDrive
+            log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
+            log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
+            # user selection for 2022
+            user_selection_2022 = st.multiselect(
+                "Select Users",
+                log_data_2022['User'].unique(),
+                default=list(log_data_2022['User'].unique()),  # Set default to all unique users
+                key="user_selection_2022"
                 )
+            display_accumulated_pushups(log_data_2022, user_selection_2022)
+            display_time_series_pushups(log_data_2022, user_selection_2022)
+
+    with st.expander("1998"):
+        st.image("https://media1.tenor.com/m/ZAMoMuQgf9UAAAAd/mapache-pedro.gif", width = 300)
+    
+    ### FUTURE CHANGES
+    st.subheader("Stuff that will change (soon)")
+    '''
+    - make logging quicker (communication with cloud takes some time right now) look into st.session_state
+    - make date-filter work
+    - add optional comments to push-up addition
+    - allow deletion of last few own activities by user
+    - handle different timezones via user-database, will timezones register locally or globally?
+    - add visualizations that were established in googlesheet in the last years
+    - allow users to set personal goals for the year
+    - might add different disciplines (squats or pull-ups or w/e)
+    - differentiate types of push-ups
+    - tackle possible issues when multiple users are adding push-ups at the same time
+    - stable colors per user in the graphs
+    - button that actively loads the vis? to increase speed of application
+    - add prizes (cash or sexual favors. tbd.)
+    '''
+
+    ### USER SUGGESTIONS
+    # fetch suggestions from GoogleDrive
+    suggestion = fetch_file_from_drive("suggestion.csv")
+
+    # Ensure suggestion is a DataFrame, if it's empty, initialize with the proper structure
+    if suggestion is None or suggestion.empty:
+        suggestion = pd.DataFrame(columns=["Timestamp", "Username", "Suggestion"])
+
+    # Form for user suggestions
+    with st.form("suggestion_form"):
+        st.write("Have another idea for improvement?")
+        # Text area for the suggestion (username is automatically logged)
+        suggestion_text = st.text_area("Your Suggestion", "")
+        submit_suggestion = st.form_submit_button("Submit Suggestion")
+
+        if submit_suggestion:
+            if suggestion_text.strip():  # Ensure the suggestion is not empty
+                # Create a DataFrame for the new suggestion
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                new_suggestion = pd.DataFrame({
+                    "Timestamp": [timestamp],
+                    "Username": [username],  # Automatically log the username
+                    "Suggestion": [suggestion_text.strip()]
+                })
+                
+                # Append new suggestion to the existing suggestions DataFrame
+                suggestion = pd.concat([suggestion, new_suggestion], ignore_index=True)
+                
+                st.success("Thank you for your suggestion!")
+                
+                # Push the updated suggestions to Google Drive
+                push_file_to_drive(suggestion, "suggestion.csv")
             else:
-                # Handle the case where end_date is not yet defined
-                start_date = st.date_input(
-                    "Start Date",
-                    value=log_data['Timestamp'].min().date(),
-                    min_value=log_data['Timestamp'].min().date(),
-                    max_value=log_data['Timestamp'].max().date()
-                )
-
-        if st.button("Show/Refresh Visualization"):
-            # TODO: make it so that the vis is displayed but only updated by the button
-            ## DISPLAY the accumulated push-ups graph
-            st.subheader("Accumulated Push-Ups")
-            display_accumulated_pushups(log_data, user_selection)
-
-            ## DISPLAY the original push-ups over time graph
-            st.subheader("Push-Ups Over Time")
-            display_time_series_pushups(log_data, user_selection)
-
-            ## DISPLAY dominance plot
-            st.subheader("Pushup dominance")
-            display_pushups_dominance_with_selection(log_data, user_selection)
-
-        ## SHOW LEGACY DATA FROM 2022
-        st.subheader("")
-        st.subheader("Legacy") 
-        # Use session_state to track if the expander is open
-        if 'expander_opened' not in st.session_state:
-            st.session_state.expander_opened = False       
-        with st.expander("2022"):
-            st.session_state.expander_opened = True
-            if st.session_state.expander_opened:
-            # fetch 2022 data from GoogleDrive
-                log_data_2022 = fetch_file_from_drive("pushup_log_2022.csv")
-                log_data_2022["Timestamp"] = pd.to_datetime(log_data_2022["Timestamp"])
-                # user selection for 2022
-                user_selection_2022 = st.multiselect(
-                    "Select Users",
-                    log_data_2022['User'].unique(),
-                    default=list(log_data_2022['User'].unique()),  # Set default to all unique users
-                    key="user_selection_2022"
-                    )
-                display_accumulated_pushups(log_data_2022, user_selection_2022)
-                display_time_series_pushups(log_data_2022, user_selection_2022)
-
-        with st.expander("1998"):
-            st.image("https://media1.tenor.com/m/ZAMoMuQgf9UAAAAd/mapache-pedro.gif", width = 300)
-        
-        ### FUTURE CHANGES
-        st.subheader("Stuff that will change (soon)")
-        '''
-        - make logging quicker (communication with cloud takes some time right now) look into st.session_state
-        - make date-filter work
-        - add optional comments to push-up addition
-        - allow deletion of last few own activities by user
-        - handle different timezones via user-database, will timezones register locally or globally?
-        - add visualizations that were established in googlesheet in the last years
-        - allow users to set personal goals for the year
-        - might add different disciplines (squats or pull-ups or w/e)
-        - differentiate types of push-ups
-        - tackle possible issues when multiple users are adding push-ups at the same time
-        - stable colors per user in the graphs
-        - button that actively loads the vis? to increase speed of application
-        - add prizes (cash or sexual favors. tbd.)
-        '''
-
-        ### USER SUGGESTIONS
-        # fetch suggestions from GoogleDrive
-        suggestion = fetch_file_from_drive("suggestion.csv")
-
-        # Ensure suggestion is a DataFrame, if it's empty, initialize with the proper structure
-        if suggestion is None or suggestion.empty:
-            suggestion = pd.DataFrame(columns=["Timestamp", "Username", "Suggestion"])
-
-        # Form for user suggestions
-        with st.form("suggestion_form"):
-            st.write("Have another idea for improvement?")
-            # Text area for the suggestion (username is automatically logged)
-            suggestion_text = st.text_area("Your Suggestion", "")
-            submit_suggestion = st.form_submit_button("Submit Suggestion")
-
-            if submit_suggestion:
-                if suggestion_text.strip():  # Ensure the suggestion is not empty
-                    # Create a DataFrame for the new suggestion
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    new_suggestion = pd.DataFrame({
-                        "Timestamp": [timestamp],
-                        "Username": [username],  # Automatically log the username
-                        "Suggestion": [suggestion_text.strip()]
-                    })
-                    
-                    # Append new suggestion to the existing suggestions DataFrame
-                    suggestion = pd.concat([suggestion, new_suggestion], ignore_index=True)
-                    
-                    st.success("Thank you for your suggestion!")
-                    
-                    # Push the updated suggestions to Google Drive
-                    push_file_to_drive(suggestion, "suggestion.csv")
-                else:
-                    st.warning("Please write a suggestion before submitting.")
-
-
-    else:
-        st.error("Invalid PIN code. Please try again.")
+                st.warning("Please write a suggestion before submitting.")
+else:
+    st.error("Please log-in (in the sidebar) to see content.")
 
 st.subheader("")
 """
