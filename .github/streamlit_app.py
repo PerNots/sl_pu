@@ -325,10 +325,46 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-        # Display the recent entries in a scrollable element
-        st.dataframe(
-            recent_entries,
-            height=250  # Set the height of the scrollable area
+        # Style the table with HTML and CSS
+        st.markdown(
+            f"""
+            <style>
+                .recent-entries-table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    text-align: left;
+                }}
+                .recent-entries-table th, .recent-entries-table td {{
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                }}
+                .recent-entries-table th {{
+                    background-color: #f4f4f4;
+                }}
+                .recent-entries-table td.comment {{
+                    width: 100%; /* Let comments take up remaining space */
+                }}
+            </style>
+            <table class="recent-entries-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Pushups</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {''.join([
+                        f"<tr><td>{row.Date}</td><td>{row.Time}</td><td>{row.User}</td><td>{row.Pushups}</td><td class='comment'>{row.comment or ''}</td></tr>"
+                        for _, row in recent_entries.iterrows()
+                    ])}
+                </tbody>
+            </table>
+            """,
+            unsafe_allow_html=True
         )
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
