@@ -570,13 +570,12 @@ st.title("Push-Up Tracker.")
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 # Use sidebar for login (more room for input fields)
-if not st.session_state.get('logged_in', False):
+if not st.session_state['logged_in']:
     # Automatically open the sidebar on first visit by showing the login UI
-    with st.sidebar.form(key='login_form'):
-        st.sidebar.header("Login")
-        username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
-        pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
-        login = st.form_submit_button("Login")  # Form submit button
+    st.sidebar.header("Login")
+    username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
+    pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
+    login = st.sidebar.button("Login")
 
     # Login Validation
     if login:
