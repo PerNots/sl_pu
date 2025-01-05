@@ -518,6 +518,72 @@ def display_total_accumulated_pushups(log_data):
     except Exception as e:
         st.error(f"Error reading or plotting data: {e}")
 
+# total pushups done within the project stacked users
+def display_total_accumulated_pushups_by_user(log_data, username):
+    """
+    Displays a stacked area chart of the accumulated pushups by each user, 
+    with the current user as the bottommost entry.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param username: The current user, who will always appear as the bottom-most entry.
+    """
+    try:
+        # Ensure 'Timestamp' is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+
+        # Extract date component and sum pushups per user per day
+        log_data['Date'] = log_data['Timestamp'].dt.date
+        daily_totals = (
+            log_data.groupby(['Date', 'User'])['Pushups']
+            .sum()
+            .reset_index()
+            .sort_values(['Date', 'User'])  # Ensure data is sorted by date and user
+        )
+
+        # Pivot data to have one column per user
+        daily_totals_pivot = daily_totals.pivot(index='Date', columns='User', values='Pushups').fillna(0)
+
+        # Ensure the current user is the first column
+        user_order = [username] + [user for user in daily_totals_pivot.columns if user != username]
+        daily_totals_pivot = daily_totals_pivot[user_order]
+
+        # Compute cumulative sum for each user over time
+        accumulated_pushups = daily_totals_pivot.cumsum()
+
+        # Create a stacked area chart
+        fig = go.Figure()
+
+        for user in accumulated_pushups.columns:
+            fig.add_trace(go.Scatter(
+                x=accumulated_pushups.index,
+                y=accumulated_pushups[user],
+                mode='lines',
+                stackgroup='one',  # Enable stacking
+                name=user,
+                line=dict(width=2),
+            ))
+
+        # Customize the layout
+        fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Total Pushups",
+            xaxis=dict(
+                tickformat="%b %-d",  # Display "Jan 1", "Jan 2", etc.
+            ),
+            legend_title="User",
+            template="plotly_white",
+            height=500,
+            width=800,
+            margin=dict(l=40, r=40, t=10, b=40),  # Adjust margins
+            dragmode="zoom",  # Enable zooming and panning
+            hovermode="x unified"  # Unified hover mode for tooltips
+        )
+
+        # Display the chart in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 
 ### GIMMICK AREA
@@ -711,7 +777,7 @@ if st.session_state['logged_in']:
 
         ## DISPLAY total pushups done within the project
         st.subheader("Total pushups done for this tracker")
-        display_total_accumulated_pushups(log_data)
+        display_total_accumulated_pushups_by_user(log_data)
 
     ## SHOW LEGACY DATA FROM 2022
     st.subheader("")
