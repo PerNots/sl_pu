@@ -875,9 +875,6 @@ if st.session_state['logged_in']:
     ### FUTURE CHANGES
     st.subheader("Stuff that will change (soon)")
     '''
-    - make logging quicker (communication with cloud takes some time right now) look into st.session_state
-    - make date-filter work
-    - add optional comments to push-up addition
     - allow deletion of last few own activities by user
     - handle different timezones via user-database, will timezones register locally or globally?
     - add visualizations that were established in googlesheet in the last years
@@ -886,7 +883,6 @@ if st.session_state['logged_in']:
     - differentiate types of push-ups
     - tackle possible issues when multiple users are adding push-ups at the same time
     - stable colors per user in the graphs
-    - button that actively loads the vis? to increase speed of application
     - add prizes (cash or sexual favors. tbd.)
     '''
 
@@ -946,7 +942,7 @@ st.subheader("")
 # - make more efficient, seperate streamlit for vis?
 # - telegram integration?
 # - with plotly, i actually don't need the user selection anymore because it can be done within the plot
-
+# - waterfall chart where user and a certain value is set and then the deviation from that value is shown per day
 
 
 
