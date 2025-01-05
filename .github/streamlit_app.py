@@ -460,6 +460,7 @@ st.markdown(
         overflow: hidden; /* Ensures content outside is not visible */
         width: 100%;
         height: 50px; /* Adjust height as needed */
+        background-color: rgba(209, 166, 48, 0.6); /* Fixed background color with 60% opacity */
     }
 
     .banner-text {
@@ -468,7 +469,7 @@ st.markdown(
         display: inline-block;
         animation: scroll-text 15s linear infinite; /* Slower animation */
         font-size: 24px; /* Adjust font size */
-        color: var(--text-color); /* Dynamic text color */
+        color: #000000; /* Fixed text color (black) */
         padding-left: 0; /* Starts immediately without delay */
     }
 
@@ -479,20 +480,6 @@ st.markdown(
         }
         100% {
             transform: translateX(-100%); /* End just outside the left edge */
-        }
-    }
-
-    /* Light Mode Styles */
-    @media (prefers-color-scheme: light) {
-        .banner-container {
-            --text-color: #000000; /* Black text for light mode */
-        }
-    }
-
-    /* Dark Mode Styles */
-    @media (prefers-color-scheme: dark) {
-        .banner-container {
-            --text-color: #ffffff; /* White text for dark mode */
         }
     }
     </style>
