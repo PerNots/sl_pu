@@ -807,7 +807,7 @@ if st.session_state['logged_in']:
             else:
                 st.warning("Please write a suggestion before submitting.")
 else:
-    st.error("Please log-in (in the sidebar) to see content.")
+    st.text("Log in to see data and log pushups")
 
 st.subheader("")
 """
