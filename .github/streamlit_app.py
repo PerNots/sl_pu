@@ -759,6 +759,9 @@ if not st.session_state['logged_in']:
         else:
             st.error("Invalid username or PIN!")
 
+# Initialize session state for log_data if not already present
+if 'log_data' not in st.session_state:
+    st.session_state.log_data = pd.DataFrame(columns=["Timestamp", "Pushups", "User", "comment"])
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:
@@ -804,10 +807,10 @@ if st.session_state['logged_in']:
                     log = fetch_file_from_drive("pushup_log.csv")
                     # append local file with current push-ups
                     log = pd.concat([log, new_entry], ignore_index=True)
-
                     # push the updated local log file to Google Drive
                     push_file_to_drive(log, "pushup_log.csv")
-
+                    # Update the log in session_state to reflect the changes
+                    st.session_state.log_data = log
                     # Placeholder success message
                     success_message = st.empty()
                     formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
@@ -822,13 +825,13 @@ if st.session_state['logged_in']:
     ### SHOW RECENT ENTRIES
     st.subheader("")
     st.header("Recent entries")
-    display_recent_entries(log_data)
+    display_recent_entries(st.session_state.log_data)
     #display_last_five_entries(log_data)
     
     ### SHOW TODAYS PUSHUPS PER USER
     st.subheader("")
     st.header("Today's pushups")
-    display_pushups_today(log_data)
+    display_pushups_today(st.session_state.log_data)
 
     ### SHOW AVERAGE OF ALL USERS
     st.subheader("")
