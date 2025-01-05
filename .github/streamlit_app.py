@@ -449,16 +449,6 @@ def display_user_stats(log_data, user_selection):
         # Calculate the average pushups
         #average_pushups = user_data['Pushups'].mean()
 
-        # Calculate the 7-day floating average
-        user_data['7-Day Avg'] = user_data['Pushups'].rolling(window=7, min_periods=1).mean()
-
-        # Calculate the expected pushups for 31.12.2025
-        days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
-        expected_pushups_2025 = average_pushups * days_to_2025
-
-        # Calculate the standard deviation of pushups
-        std_dev_pushups = user_data['Pushups'].std()
-
         # Calculate the average pushups per day since and including 31.12.2024
         start_date = datetime(2024, 12, 31)
         user_data_since = user_data[user_data['Timestamp'] >= start_date]
@@ -468,6 +458,16 @@ def display_user_stats(log_data, user_selection):
 
         # Calculate the average pushups per day from 31.12.2024 onward
         average_pushups = daily_pushups.mean()
+
+        # Calculate the 7-day floating average
+        user_data['7-Day Avg'] = user_data['Pushups'].rolling(window=7, min_periods=1).mean()
+
+        # Calculate the expected pushups for 31.12.2025
+        days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
+        expected_pushups_2025 = average_pushups * days_to_2025
+
+        # Calculate the standard deviation of pushups
+        std_dev_pushups = user_data['Pushups'].std()
 
         # Create a summary DataFrame
         stats = {
