@@ -902,6 +902,7 @@ if st.session_state['logged_in']:
     ### FUTURE CHANGES
     st.subheader("Stuff that will change (soon)")
     '''
+    - get different color palette (suggestions welcome)
     - allow deletion of last few own activities by user
     - handle different timezones via user-database, will timezones register locally or globally?
     - add visualizations that were established in googlesheet in the last years
