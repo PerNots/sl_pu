@@ -430,6 +430,51 @@ def display_daily_average_pushups(log_data, start_date="2024-12-31"):
     # Display the table
     st.dataframe(user_totals[['User', 'Daily Average']], hide_index=True)
 
+# Table personal stats
+def display_user_stats(log_data, user_selection):
+    """
+    Display the current user's pushup stats: total, average, 7-day floating average,
+    expected pushups for 31.12.2025, and standard deviation.
+
+    :param log_data: DataFrame containing the pushup logs with 'Timestamp', 'Pushups', and 'User' columns.
+    :param user_selection: Selected user to display stats for.
+    """
+    try:
+        # Filter the data for the selected user
+        user_data = log_data[log_data['User'] == user_selection]
+
+        # Calculate the total pushups
+        total_pushups = user_data['Pushups'].sum()
+
+        # Calculate the average pushups
+        average_pushups = user_data['Pushups'].mean()
+
+        # Calculate the 7-day floating average
+        user_data['7-Day Avg'] = user_data['Pushups'].rolling(window=7, min_periods=1).mean()
+
+        # Calculate the expected pushups for 31.12.2025
+        # Assuming the user logs pushups every day on average
+        days_to_2025 = (datetime.datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
+        expected_pushups_2025 = average_pushups * days_to_2025
+
+        # Calculate the standard deviation of pushups
+        std_dev_pushups = user_data['Pushups'].std()
+
+        # Create a summary DataFrame
+        stats = {
+            "Metric": ["Total Pushups", "Average Pushups", "7-Day Floating Average", "Expected Pushups for 31.12.2025", "Standard Deviation"],
+            "Value": [total_pushups, average_pushups, user_data['7-Day Avg'].iloc[-1], expected_pushups_2025, std_dev_pushups]
+        }
+        stats_df = pd.DataFrame(stats)
+
+        # Display the stats table
+        st.write(f"### {user_selection}'s Pushup Stats")
+        st.dataframe(stats_df, hide_index=True)
+
+    except Exception as e:
+        st.error(f"Error calculating stats for {user_selection}: {e}")
+
+
 # display heatmap
 def display_pushup_heatmap(log_data):
     """
@@ -778,16 +823,17 @@ if st.session_state['logged_in']:
     # Create a form to group the input and button together
     with st.form("log_pushups_form"):
         # Create two columns to place the input field and button side by side
-        col1, col2 = st.columns([3, 1],vertical_alignment="bottom")  # Adjust the width ratio as needed
+        col1, col2 = st.columns([3, 1], vertical_alignment="bottom")  # Adjust the width ratio as needed
         with col1:
-            # Input field for the number of push-ups
-            pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1)
-        with col2:
-            # Submit button inside the form and aligned with the bottom of the input
-            submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
+            # Input field for the number of push-ups (broad column)
+            pushups = st.number_input("Enter the number of push-ups you just did:", min_value=1, step=1, label_visibility="collapsed")
 
-        # Optional comment input
-        comment = st.text_input("Add a comment (optional):")
+        with col2:
+            # Optional comment input (right column)
+            comment = st.text_input("Add a comment (optional):", label_visibility="collapsed")
+
+            # Submit button (aligned with the bottom of the comment input)
+            submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
 
         # If the button is pressed or Enter is hit, log the data
         if submit_button:
@@ -834,10 +880,15 @@ if st.session_state['logged_in']:
     st.header("Today's pushups")
     display_pushups_today(st.session_state.log_data)
 
-    ### SHOW AVERAGE OF ALL USERS
+    ### SHOW PERSONAL STATS
     st.subheader("")
-    with st.expander("Average pushups per day"):
-        display_daily_average_pushups(st.session_state.log_data)
+    st.header("Your personal stats!")
+    display_user_stats(st.session_state.log_data, username)
+
+    ### SHOW AVERAGE OF ALL USERS
+    # TOO COMPETITIVE, TOO PERSONAL
+    #with st.expander("Average pushups per day"):
+    #    display_daily_average_pushups(st.session_state.log_data)
     with st.expander ("Heatmap of pushups"):
         display_pushup_heatmap(st.session_state.log_data)
 
@@ -974,6 +1025,7 @@ st.subheader("")
 # - telegram integration?
 # - with plotly, i actually don't need the user selection anymore because it can be done within the plot
 # - waterfall chart where user and a certain value is set and then the deviation from that value is shown per day
+# - # TODO: Graph average over time (PERSONAL, NOT ALL USER'S DATA)
 
 
 
