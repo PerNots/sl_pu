@@ -188,7 +188,8 @@ def display_accumulated_pushups(log_data, user_selection):
 # graph for pushups over time
 def display_time_series_pushups(log_data, user_selection):
     """
-    Displays a time-series graph of pushups for the selected users using Plotly.
+    Displays a time-series graph of pushups for the selected users using Plotly,
+    aggregated to show one datapoint per day.
 
     :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
     :param user_selection: List of selected users to filter the data for plotting.
@@ -196,44 +197,46 @@ def display_time_series_pushups(log_data, user_selection):
     try:
         # Ensure the Timestamp column is in datetime format
         log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
-        
+
         # Filter data based on selected users
         if user_selection:
             filtered_data = log_data[log_data['User'].isin(user_selection)]
-            
+
+            # Aggregate data to sum pushups per day per user
+            filtered_data['Date'] = filtered_data['Timestamp'].dt.date  # Extract date component
+            daily_data = (
+                filtered_data.groupby(['Date', 'User'])['Pushups']
+                .sum()
+                .reset_index()
+            )
+
             # Create the Plotly figure
             fig = px.line(
-                filtered_data,
-                x="Timestamp",
+                daily_data,
+                x="Date",
                 y="Pushups",
                 color="User",
-                labels={"Timestamp": "Time", "Pushups": "Pushups", "User": "User"},
-                #title="Pushups Over Time"
+                labels={"Date": "Date", "Pushups": "Pushups", "User": "User"},
             )
-            
+
             # Customize the layout for better interaction
             fig.update_layout(
                 width=800,
                 height=400,
-                xaxis_title="Time",
+                xaxis_title="Date",
                 yaxis_title="Pushups",
                 margin=dict(l=40, r=40, t=40, b=40),
                 legend_title="Users",
             )
-            
+
             # Enable interactive tools like zoom and pan
             fig.update_layout(
-                dragmode="zoom",  # Allows zooming by dragging
-                hovermode="x unified"  # Unified hover mode for better tooltips
+                dragmode="zoom",
+                hovermode="x unified"
             )
-            
+
             # Display the chart in Streamlit
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.write("No users selected. Please select at least one user to display the graph.")
-
-    except Exception as e:
-        st.error(f"Error reading or plotting data: {e}")
 
 # dominance graph
 def display_pushups_dominance_with_selection(log_data, user_selection):
