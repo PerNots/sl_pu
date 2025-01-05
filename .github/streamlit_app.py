@@ -456,6 +456,56 @@ def display_pushup_heatmap(log_data):
     # Display the heatmap in Streamlit
     st.plotly_chart(fig)
 
+# total pushups done within the project
+def display_total_accumulated_pushups(log_data):
+    """
+    Displays a time-series graph of the total accumulated pushups over time.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp' and 'Pushups'.
+    """
+    try:
+        # Ensure the Timestamp column is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+
+        # Aggregate data to sum pushups per day
+        log_data['Date'] = log_data['Timestamp'].dt.date  # Extract date component
+        daily_totals = (
+            log_data.groupby('Date')['Pushups']
+            .sum()
+            .reset_index()
+            .sort_values('Date')  # Ensure data is sorted by date
+        )
+
+        # Compute the accumulated sum of pushups
+        daily_totals['Accumulated Pushups'] = daily_totals['Pushups'].cumsum()
+
+        # Create the Plotly figure
+        fig = px.line(
+            daily_totals,
+            x="Date",
+            y="Accumulated Pushups",
+            labels={"Date": "Date", "Accumulated Pushups": "Total Pushups"},
+            #title="Total Accumulated Pushups Over Time",
+        )
+
+        # Customize the layout for better interaction
+        fig.update_layout(
+            width=800,
+            height=400,
+            xaxis_title="Date",
+            yaxis_title="Accumulated Pushups",
+            margin=dict(l=40, r=40, t=40, b=40),
+            dragmode="zoom",  # Enable zooming and panning
+            hovermode="x unified"  # Unified hover mode for better tooltips
+        )
+
+        # Display the chart in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error reading or plotting data: {e}")
+
+
 
 ### GIMMICK AREA
 # Custom CSS for the banner
@@ -644,6 +694,10 @@ if st.session_state['logged_in']:
         ## DISPLAY dominance plot
         st.subheader("Pushup dominance")
         display_pushups_dominance_with_selection(log_data, user_selection)
+
+        ## DISPLAY total pushups done within the project
+        st.subheader("Total pushups done for this tracker")
+        display_total_accumulated_pushups(log_data)
 
     ## SHOW LEGACY DATA FROM 2022
     st.subheader("")
