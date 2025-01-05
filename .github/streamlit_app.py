@@ -471,7 +471,7 @@ def display_user_stats(log_data, user_selection):
 
         # Calculate the expected pushups for 31.12.2025
         days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
-        expected_pushups_2025 = (average_pushups * days_to_2025).round(1)
+        expected_pushups_2025 = (average_pushups * days_to_2025).round(0)
 
         # Calculate the standard deviation of pushups
         std_dev_pushups = daily_pushups_full.std().round(1)
