@@ -289,14 +289,14 @@ def display_pushups_dominance_with_selection(log_data, user_selection, username)
 
             # Customize the layout
             fig.update_layout(
-                #title="Dominance of Pushups by User Each Day",
                 xaxis_title="Date",
                 yaxis_title="Percentage of Pushups",
                 xaxis=dict(tickformat="%Y-%m-%d"),
                 legend_title="User",
                 template="plotly_white",
                 height=500,
-                width=800
+                width=800,
+                margin=dict(l=40, r=40, t=10, b=40),  # Reduce top margin
             )
 
             # Show the plot in Streamlit
@@ -306,6 +306,7 @@ def display_pushups_dominance_with_selection(log_data, user_selection, username)
     
     except Exception as e:
         st.error(f"Error: {e}")
+
 
 # last five entries into log
 def display_last_five_entries(log_data):
