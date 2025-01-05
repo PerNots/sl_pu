@@ -10,6 +10,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pytz
 from datetime import datetime
+import plotly.colors
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -154,6 +158,23 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 # git checkout <branch>
 # git merge <branch>
 
+# assign stable colors
+def generate_user_colors(user_database):
+    """
+    Generate stable user colors using the Viridis colormap.
+    :param user_database: Dictionary of users (keys) and PINs (values) from Streamlit secrets.
+    :return: A dictionary mapping each user to a Viridis color (hex format).
+    """
+    users = list(user_database.keys())
+    num_users = len(users)
+    
+    # Normalize the number of users to the Viridis colormap
+    colormap = cm.get_cmap('viridis', num_users)  # Viridis colormap with `num_users` steps
+    
+    # Assign colors to users
+    user_colors = {user: mcolors.to_hex(colormap(i)) for i, user in enumerate(users)}
+    return user_colors
+
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
     try:
@@ -173,7 +194,7 @@ def display_accumulated_pushups(log_data, user_selection):
                 x="Timestamp",  # X-axis as Timestamp
                 y="Accumulated Pushups",  # Y-axis as accumulated pushups
                 color="User",  # Color by user
-                #title="Accumulated Push-Ups Over Time (Selected Users)",
+                color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
                 labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
             )
 
@@ -216,6 +237,7 @@ def display_time_series_pushups(log_data, user_selection):
                 x="Date",
                 y="Pushups",
                 color="User",
+                color_discrete_map=USER_COLORS,
                 labels={"Date": "Date", "Pushups": "Pushups", "User": "User"},
             )
 
@@ -284,7 +306,7 @@ def display_pushups_dominance_with_selection(log_data, user_selection, username)
                     mode='lines',
                     stackgroup='one',  # Stack the lines
                     name=user,
-                    line=dict(width=2),
+                    line=dict(width=2, color=USER_COLORS.get(user, '#000000')),  # Use color from USER_COLORS                
                 ))
 
             # Customize the layout
@@ -560,7 +582,7 @@ def display_total_accumulated_pushups_by_user(log_data, username):
                 mode='lines',
                 stackgroup='one',  # Enable stacking
                 name=user,
-                line=dict(width=2),
+                line=dict(width=2, color=USER_COLORS.get(user, '#000000')),
             ))
 
         # Customize the layout
@@ -620,6 +642,7 @@ def display_daily_pushup_contributions(log_data, username):
                 x=daily_totals_pivot.index,
                 y=daily_totals_pivot[user],
                 name=user,
+                marker_color=USER_COLORS.get(user, '#000000') 
             ))
 
         # Customize the layout
@@ -700,6 +723,9 @@ st.markdown(
 
 
 ### START OF THE APP'S SCRIPT
+
+USER_COLORS = generate_user_colors(USER_DATABASE)  # Viridis-based color mapping
+
 # Title for the app
 st.title("Push-Up Tracker.")
 
