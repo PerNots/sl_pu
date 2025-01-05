@@ -574,51 +574,25 @@ if 'username' not in st.session_state:
     st.session_state['username'] = None
 
 if not st.session_state['logged_in']:
-    with st.container():  # This container acts as a modal-like overlay
-        st.markdown(
-            """
-            <style>
-            .login-modal {
-                background-color: rgba(0, 0, 0, 0.5); 
-                position: fixed;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .login-form {
-                background: white;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-        st.markdown('<div class="login-modal"><div class="login-form">', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
+    # User selection dropdown
+    with col1:
+        username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
+    # PIN code input field
+    with col2:
+        pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
+    with col3:
+        login = st.button("Login",use_container_width=True)
 
-        # Login UI
-        st.header("Login")
-        username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
-        pincode = st.text_input("Enter PIN Code", type="password", placeholder="PIN")
-        login = st.button("Login")
+    # Login Validation
+    if login:
+        if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+            st.session_state['logged_in'] = True  # Mark as logged in
+            st.session_state['username'] = username  # Store username
+            st.success(f"Welcome, {username}!")
+        else:
+            st.error("Invalid username or PIN!")
 
-        # Login Validation
-        if login:
-            if username in USER_DATABASE and pincode == USER_DATABASE[username]:
-                st.session_state['logged_in'] = True  # Mark as logged in
-                st.session_state['username'] = username  # Store username
-                st.success(f"Welcome, {username}!")
-                time.sleep(1)  # Optionally wait before transitioning
-                st.experimental_rerun()  # Refresh page to remove modal
-            else:
-                st.error("Invalid username or PIN!")
-
-        st.markdown('</div></div>', unsafe_allow_html=True)
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:
