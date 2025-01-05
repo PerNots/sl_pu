@@ -332,7 +332,7 @@ def display_recent_entries(log_data, num_entries=20):
 
         # CSS for light and dark mode
         #background_color = "#333" if is_dark_mode else "#f4f4f4"
-        background_color = "red" if is_dark_mode else "#f4f4f4"
+        background_color = "red" if is_dark_mode else "red"
 
         text_color = "#fff" if is_dark_mode else "#000"
 
