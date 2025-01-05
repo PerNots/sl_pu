@@ -566,16 +566,23 @@ st.markdown(
 st.title("Push-Up Tracker.")
 
 # Login-part
+
+# Use sidebar for login (more room for input fields)
+st.sidebar.header("Login")
+username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
+pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
+login = st.sidebar.button("Login")
+
 # Side-by-side layout for username and PIN code
-col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
+#col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
 # User selection dropdown
-with col1:
-    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
+#with col1:
+#    username = st.selectbox("Select User", options=list(USER_DATABASE.keys()),label_visibility="collapsed",placeholder="Username")
 # PIN code input field
-with col2:
-    pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
-with col3:
-    login = st.button("Login",use_container_width=True)
+#with col2:
+#    pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed",placeholder="PIN")
+#with col3:
+#    login = st.button("Login",use_container_width=True)
 
 # Login Validation
 if login:
