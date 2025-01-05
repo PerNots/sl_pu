@@ -342,7 +342,7 @@ def display_recent_entries(log_data, num_entries=20):
                 }}
                 .scrollable-table th, .scrollable-table td {{
                     padding: 8px 12px;
-                    border: 1px solid #ddd;
+                    border: 1px solid #333;
                 }}
                 .scrollable-table td.comment {{
                     width: 100%; /* Let comments take up remaining space */
