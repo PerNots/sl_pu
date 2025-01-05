@@ -327,16 +327,13 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-        # Create Ag-Grid options
-        gb = GridOptionsBuilder.from_dataframe(recent_entries)
-        # Enable auto-sizing for all columns (for dynamic sizing)
-        gb.configure_column("comment", width=500, resizable=True)  # comment column is dynamic
-        # Scrollable table with pagination
-        gb.configure_pagination(paginationPageSize=10)
-        grid_options = gb.build()
-        # Display the grid
-        AgGrid(recent_entries, gridOptions=grid_options, height=350, fit_columns_on_grid_load=True)
-
+        # Display the recent entries in a scrollable element
+        st.dataframe(
+            recent_entries,
+            height = 250,  # Set the height of the scrollable area
+            use_container_width = True,
+            hide_index = True
+        )
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
