@@ -332,7 +332,7 @@ def display_recent_entries(log_data, num_entries=20):
                 .scrollable-table {{
                     max-height: 300px; /* Adjust the height as needed */
                     overflow-y: auto;
-                    border: 1px solid #ddd;
+                    border: 1px solid #333;
                 }}
                 .scrollable-table table {{
                     width: 100%;
@@ -348,26 +348,13 @@ def display_recent_entries(log_data, num_entries=20):
                     width: 100%; /* Let comments take up remaining space */
                 }}
 
-                /* Light Mode Styles */
-                @media (prefers-color-scheme: light) {{
-                    .scrollable-table th {{
-                        position: sticky;
-                        top: 0;
-                        background-color: #f0f2f6; /* White background for light mode */
-                        color: #000000; /* Black text for light mode */
-                        z-index: 1;
-                    }}
-                }}
-
-                /* Dark Mode Styles */
-                @media (prefers-color-scheme: dark) {{
-                    .scrollable-table th {{
-                        position: sticky;
-                        top: 0;
-                        background-color: #262730; /* Dark background for dark mode */
-                        color: #ffffff; /* White text for dark mode */
-                        z-index: 1;
-                    }}
+                /* Header Style for Both Light and Dark Modes */
+                .scrollable-table th {{
+                    position: sticky;
+                    top: 0;
+                    background-color: #7e7e7e; /* Medium gray background for both modes */
+                    color: #ffffff; /* White text for contrast */
+                    z-index: 1;
                 }}
             </style>
             <div class="scrollable-table">
@@ -391,7 +378,7 @@ def display_recent_entries(log_data, num_entries=20):
             </div>
             """,
             unsafe_allow_html=True
-        )
+                )
 
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
