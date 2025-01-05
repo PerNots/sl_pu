@@ -576,18 +576,19 @@ if not st.session_state.get('logged_in', False):
         st.sidebar.header("Login")
         username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
         pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
-        login = st.sidebar.form_submit_button("Login")  # Form submit button
+        login = st.form_submit_button("Login")  # Form submit button
 
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
             st.session_state['logged_in'] = True  # Mark as logged in
             st.success(f"Welcome, {username}!")
+            # Optionally, wait a moment before removing the login UI
             time.sleep(1)
         else:
             st.sidebar.error("Invalid username or PIN!")
 else:
-    # Content after login
+    # If already logged in, show a message or the main content
     st.sidebar.empty()  # Hide the login form when logged in
     #st.success(f"You're logged in as {username}!")
 
