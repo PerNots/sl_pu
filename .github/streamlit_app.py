@@ -331,10 +331,8 @@ def display_recent_entries(log_data, num_entries=20):
         is_dark_mode = theme.get("base", "light") == "dark"
 
         # CSS for light and dark mode
-        #background_color = "#333" if is_dark_mode else "#f4f4f4"
-        background_color = "#0e1117" if is_dark_mode else "#ffffff"
-
-        text_color = "#fff" if is_dark_mode else "#000"
+        theme_base = st.get_option("theme.base")  # Fetch the theme from Streamlit options
+        is_dark_mode = theme_base == "dark"
 
         # Render the table with styles
         st.markdown(
