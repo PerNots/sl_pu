@@ -730,7 +730,7 @@ st.markdown(
 
 USER_COLORS = generate_user_colors(USER_DATABASE)  # Viridis-based color mapping
 
-st.text(USER_COLORS)
+#st.text(USER_COLORS)
 
 # Title for the app
 st.title("Push-Up Tracker.")
