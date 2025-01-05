@@ -461,12 +461,13 @@ st.markdown(
         width: 100%;
         height: 50px; /* Adjust height as needed */
         background-color: rgba(209, 166, 48, 0.6); /* Fixed background color with 60% opacity */
+        display: flex;
+        align-items: center; /* Vertically center text */
+        justify-content: center; /* Horizontally center text */
     }
 
     .banner-text {
-        position: absolute;
         white-space: nowrap;
-        display: inline-block;
         animation: scroll-text 15s linear infinite; /* Slower animation */
         font-size: 24px; /* Adjust font size */
         color: #000000; /* Fixed text color (black) */
@@ -486,6 +487,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 # Add the scrolling text in the banner
 st.markdown(
