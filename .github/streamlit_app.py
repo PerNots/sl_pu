@@ -324,7 +324,7 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Date'] = log_data['Timestamp'].dt.date
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
-        recent_entries = log_data[['Date', 'Time', 'User', 'Pushups']].tail(num_entries).iloc[::-1]
+        recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
         # Display the recent entries in a scrollable element
         st.dataframe(
             recent_entries,
