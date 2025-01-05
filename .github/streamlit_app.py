@@ -450,7 +450,7 @@ def display_pushup_heatmap(log_data):
 
 
 ### GIMMICK AREA
-background = st.get_option("theme.secondaryBackgroundColor")
+background = st.get_option("theme.base")
 st.header(background)
 # Custom CSS for the banner
 st.markdown(
