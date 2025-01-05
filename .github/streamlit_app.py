@@ -10,9 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pytz
 from datetime import datetime
-import plotly.colors
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+import seaborn as sns
 import matplotlib.colors as mcolors
 # For syncing to GoogleDrive
 from google.oauth2 import service_account
@@ -161,22 +159,19 @@ def fetch_file_from_drive(file_name, service=drive_service, folder_id=FOLDER_ID)
 # assign stable colors
 def generate_user_colors(user_database):
     """
-    Generate stable user colors using the Viridis colormap, excluding the color #440154.
+    Generate stable user colors using the Set3 ColorBrewer palette.
     
     :param user_database: Dictionary of users (keys) and PINs (values) from Streamlit secrets.
-    :return: A dictionary mapping each user to a Viridis color (hex format).
+    :return: A dictionary mapping each user to a ColorBrewer color (hex format).
     """
     users = list(user_database.keys())
     num_users = len(users)
     
-    # Get the full Viridis colormap
-    colormap = cm.get_cmap('viridis', num_users + 1)  # Generate one extra step
-    
-    # Exclude the first color (#440154) by starting from the second color
-    colors = [colormap(i + 1) for i in range(num_users)]  # Skip the first color
+    # Get the Set3 ColorBrewer palette (you can adjust the number of colors as needed)
+    palette = sns.color_palette("Set3", num_users)
     
     # Assign colors to users
-    user_colors = {user: mcolors.to_hex(colors[i]) for i, user in enumerate(users)}
+    user_colors = {user: mcolors.to_hex(palette[i]) for i, user in enumerate(users)}
     return user_colors
 
 # graph for accum pushups
