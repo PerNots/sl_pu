@@ -333,6 +333,7 @@ def display_recent_entries(log_data, num_entries=20):
                     max-height: 300px; /* Adjust the height as needed */
                     overflow-y: auto;
                     border: 1px solid #333;
+                    margin-top: 30px; /* Add a bit of space on top for the header */
                 }}
                 .scrollable-table table {{
                     width: 100%;
@@ -352,9 +353,8 @@ def display_recent_entries(log_data, num_entries=20):
                 .scrollable-table th {{
                     position: sticky;
                     top: 0;
-                    /* background-color: #7e7e7e;  Medium gray background for both modes */
-                    /* color: #ffffff;  White text for contrast */
-                    z-index: 1;
+                    z-index: 1;  /* Ensure the header stays on top */
+                    background-color: transparent; /* No background, just natural blending with the page */
                 }}
             </style>
             <div class="scrollable-table">
@@ -378,7 +378,8 @@ def display_recent_entries(log_data, num_entries=20):
             </div>
             """,
             unsafe_allow_html=True
-                )
+        )
+
 
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
