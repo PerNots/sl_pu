@@ -474,7 +474,7 @@ def display_user_stats(log_data, user_selection):
         expected_pushups_2025 = (average_pushups * days_to_2025).round(1)
 
         # Calculate the standard deviation of pushups
-        std_dev_pushups = user_data['Pushups'].std().round(1)
+        std_dev_pushups = daily_pushups_full.std().round(1)
 
         # Create a summary DataFrame
         stats = {
