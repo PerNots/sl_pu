@@ -843,7 +843,7 @@ if st.session_state['logged_in']:
         col1, col2 = st.columns([3, 1], vertical_alignment="bottom")  # Adjust the width ratio as needed
         with col1:
             # Optional comment input (right column)
-            comment = st.text_input("Add a comment (optional):", label_visibility="collapsed")
+            comment = st.text_input("Add a comment (optional):", label_visibility="collapsed", placeholder="Add an optional comment here...")
         with col2:
             # Submit button (aligned with the bottom of the comment input)
             submit_button = st.form_submit_button("Log Push-Ups", use_container_width=True)
