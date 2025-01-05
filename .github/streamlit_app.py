@@ -462,9 +462,12 @@ def display_user_stats(log_data, user_selection):
         # Group by day and sum the pushups for each day
         user_data['Date'] = user_data['Timestamp'].dt.date
         daily_pushups = user_data.groupby('Date')['Pushups'].sum()
-
-        # Calculate the 7-day floating average over the daily sum
-        daily_pushups_7day_avg = daily_pushups.rolling(window=7, min_periods=1).mean().round(1)
+        # Create a complete date range from the earliest to the latest date in the data
+        all_dates = pd.date_range(start=daily_pushups.index.min(), end=daily_pushups.index.max(), freq='D')
+        # Reindex the daily pushups data to include all dates, filling missing days with 0
+        daily_pushups_full = daily_pushups.reindex(all_dates, fill_value=0)
+        # Calculate the 7-day floating average, including days with no pushups
+        daily_pushups_7day_avg = daily_pushups_full.rolling(window=7, min_periods=1).mean().round(1)
 
         # Calculate the expected pushups for 31.12.2025
         days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
