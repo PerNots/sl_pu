@@ -524,7 +524,7 @@ st.markdown(
 
     .banner-text {
         white-space: nowrap;
-        animation: scroll-text 15s linear infinite; /* Slower animation */
+        animation: scroll-text 25s linear infinite; /* Slower animation */
         font-size: 24px; /* Adjust font size */
         color: #000000; /* Fixed text color (black) */
         padding-left: 0; /* Starts immediately without delay */
@@ -569,16 +569,14 @@ st.title("Push-Up Tracker.")
 # Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
+
 if 'username' not in st.session_state:
     st.session_state['username'] = None
 
-# Full-page login screen (appears before login)
+# Use sidebar for login (only when not logged in)
 if not st.session_state['logged_in']:
-    login_container = st.empty()  # Create an empty placeholder for the login form
-
-    with login_container:
-        # Display the login UI
-        st.title("Login")
+    with st.sidebar:
+        st.header("Login")
         username = st.selectbox("Select User", options=list(USER_DATABASE.keys()))
         pincode = st.text_input("Enter PIN Code", type="password", placeholder="PIN")
         login = st.button("Login")
@@ -589,8 +587,6 @@ if not st.session_state['logged_in']:
                 st.session_state['logged_in'] = True  # Mark as logged in
                 st.session_state['username'] = username  # Store username
                 st.success(f"Welcome, {username}!")
-                time.sleep(1)  # Optionally wait before transitioning
-                login_container.empty()  # Clear the login UI
             else:
                 st.error("Invalid username or PIN!")
 
