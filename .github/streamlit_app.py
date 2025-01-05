@@ -702,6 +702,7 @@ if st.session_state['logged_in']:
 
         ## DISPLAY dominance plot
         st.subheader("Pushup dominance")
+        st.text("Percentage of all pushups done by each user per day. Current user is always the bottommost line.")
         display_pushups_dominance_with_selection(log_data, user_selection, username)
 
         ## DISPLAY total pushups done within the project
