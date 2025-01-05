@@ -585,6 +585,64 @@ def display_total_accumulated_pushups_by_user(log_data, username):
     except Exception as e:
         st.error(f"Error: {e}")
 
+def display_daily_pushup_contributions(log_data, username):
+    """
+    Displays a stacked bar plot of daily pushup contributions by each user.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param username: The current user, who will always appear as the bottom-most bar segment.
+    """
+    try:
+        # Ensure 'Timestamp' is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+
+        # Extract date component and sum pushups per user per day
+        log_data['Date'] = log_data['Timestamp'].dt.date
+        daily_totals = (
+            log_data.groupby(['Date', 'User'])['Pushups']
+            .sum()
+            .reset_index()
+            .sort_values(['Date', 'User'])  # Ensure data is sorted by date and user
+        )
+
+        # Pivot data to have one column per user
+        daily_totals_pivot = daily_totals.pivot(index='Date', columns='User', values='Pushups').fillna(0)
+
+        # Ensure the current user is the first column
+        user_order = [username] + [user for user in daily_totals_pivot.columns if user != username]
+        daily_totals_pivot = daily_totals_pivot[user_order]
+
+        # Create a stacked bar chart
+        fig = go.Figure()
+
+        for user in daily_totals_pivot.columns:
+            fig.add_trace(go.Bar(
+                x=daily_totals_pivot.index,
+                y=daily_totals_pivot[user],
+                name=user,
+            ))
+
+        # Customize the layout
+        fig.update_layout(
+            barmode="stack",  # Stacked bars
+            xaxis_title="Date",
+            yaxis_title="Pushups",
+            xaxis=dict(
+                tickformat="%b %-d",  # Display "Jan 1", "Jan 2", etc.
+            ),
+            legend_title="User",
+            template="plotly_white",
+            height=500,
+            width=800,
+            margin=dict(l=40, r=40, t=10, b=40),  # Adjust margins
+        )
+
+        # Display the chart in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
 
 ### GIMMICK AREA
 # Custom CSS for the banner
@@ -764,10 +822,12 @@ if st.session_state['logged_in']:
         # TODO: make it so that the vis is displayed but only updated by the button
         ## DISPLAY the accumulated push-ups graph
         st.subheader("Accumulated Push-Ups")
+        st.text("Accumulated, unstacked")
         display_accumulated_pushups(log_data, user_selection)
 
         ## DISPLAY the original push-ups over time graph
         st.subheader("Push-Ups Over Time")
+        st.text("Not-accumulated, unstacked")
         display_time_series_pushups(log_data, user_selection)
 
         ## DISPLAY dominance plot
@@ -777,7 +837,14 @@ if st.session_state['logged_in']:
 
         ## DISPLAY total pushups done within the project
         st.subheader("Total pushups done for this tracker")
+        st.text("Accumulated, stacked")
         display_total_accumulated_pushups_by_user(log_data, username)
+
+        ## DISPLAY TODO:
+        st.subheader("Total pushups done per day and how much each user contributed")
+        st.text("Not-accumulated, stacked")
+        display_daily_pushup_contributions(log_data, username)
+
 
     ## SHOW LEGACY DATA FROM 2022
     st.subheader("")
