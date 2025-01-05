@@ -570,29 +570,26 @@ st.title("Push-Up Tracker.")
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 # Use sidebar for login (more room for input fields)
-if not st.session_state['logged_in']:
+if not st.session_state.get('logged_in', False):
     # Automatically open the sidebar on first visit by showing the login UI
-    st.sidebar.header("Login")
-    username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
-    pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
-    login = st.sidebar.button("Login")
+    with st.sidebar.form(key='login_form'):
+        st.sidebar.header("Login")
+        username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
+        pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
+        login = st.sidebar.form_submit_button("Login")  # Form submit button
 
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
             st.session_state['logged_in'] = True  # Mark as logged in
             st.success(f"Welcome, {username}!")
-            #time.sleep(3)
-            #st.empty()
+            time.sleep(1)
         else:
             st.sidebar.error("Invalid username or PIN!")
 else:
     # Content after login
-    st.sidebar.write(f"Welcome back!")
-    if st.sidebar.button("Logout"):
-        st.session_state['logged_in'] = False  # Log out and show login UI again
-        st.experimental_rerun()  # Rerun the app to reset sidebar state
-
+    st.sidebar.empty()  # Hide the login form when logged in
+    #st.success(f"You're logged in as {username}!")
 
 ### MAIN CONTENT that is displayed when login was successfull
 if st.session_state['logged_in']:
