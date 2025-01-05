@@ -548,7 +548,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Sorry to the Estonians :(. Cheers. Happy pushing.</div>
+        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Sorry to the Estonians :(. Heatmap now looks much prettier. Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
