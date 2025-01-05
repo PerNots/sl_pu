@@ -4,6 +4,8 @@
 data/
 
 
+# include config
+!.streamlit/
+
 .streamlit/*
 !.streamlit/config.toml
-git 
