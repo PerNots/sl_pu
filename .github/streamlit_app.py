@@ -325,43 +325,50 @@ def display_recent_entries(log_data, num_entries=20):
         log_data['Time'] = log_data['Timestamp'].dt.time
         # Select the relevant columns and get the most recent entries
         recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-        # Determine current theme
-        theme_base = st.get_option("theme.base")  # Fetch the theme from Streamlit options
-        is_dark_mode = theme_base == "dark"
-
-        # CSS for light and dark mode
-        background_color = "#0e1117" if is_dark_mode else "#ffffff"  # Dark for dark mode, white for light mode
-        text_color = "#fff" if is_dark_mode else "#000"  # Adjust text color accordingly
-
-        # Render the table with styles
         st.markdown(
-            f"""
+            """
             <style>
-                .scrollable-table {{
+                /* Common Table Styles */
+                .scrollable-table {
                     max-height: 300px; /* Adjust the height as needed */
                     overflow-y: auto;
                     border: 1px solid #ddd;
-                }}
-                .scrollable-table table {{
+                }
+                .scrollable-table table {
                     width: 100%;
                     border-collapse: collapse;
                     font-size: 14px;
                     text-align: left;
-                }}
-                .scrollable-table th, .scrollable-table td {{
+                }
+                .scrollable-table th, .scrollable-table td {
                     padding: 8px 12px;
                     border: 1px solid #ddd;
-                }}
-                .scrollable-table th {{
-                    position: sticky;
-                    top: 0;
-                    background-color: {background_color};
-                    color: {text_color};
-                    z-index: 1;
-                }}
-                .scrollable-table td.comment {{
+                }
+                .scrollable-table td.comment {
                     width: 100%; /* Let comments take up remaining space */
-                }}
+                }
+
+                /* Light Mode Styles */
+                @media (prefers-color-scheme: light) {
+                    .scrollable-table th {
+                        position: sticky;
+                        top: 0;
+                        background-color: #ffffff; /* White background for light mode */
+                        color: #000000; /* Black text for light mode */
+                        z-index: 1;
+                    }
+                }
+
+                /* Dark Mode Styles */
+                @media (prefers-color-scheme: dark) {
+                    .scrollable-table th {
+                        position: sticky;
+                        top: 0;
+                        background-color: #0e1117; /* Dark background for dark mode */
+                        color: #ffffff; /* White text for dark mode */
+                        z-index: 1;
+                    }
+                }
             </style>
             <div class="scrollable-table">
                 <table>
