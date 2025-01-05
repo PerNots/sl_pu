@@ -566,12 +566,16 @@ st.markdown(
 st.title("Push-Up Tracker.")
 
 # Login-part
-
+# Initialize session state
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
 # Use sidebar for login (more room for input fields)
-st.sidebar.header("Login")
-username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
-pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
-login = st.sidebar.button("Login")
+if not st.session_state['logged_in']:
+    # Automatically open the sidebar on first visit by showing the login UI
+    st.sidebar.header("Login")
+    username = st.sidebar.selectbox("Select User", options=list(USER_DATABASE.keys()))
+    pincode = st.sidebar.text_input("Enter PIN Code", type="password", placeholder="PIN")
+    login = st.sidebar.button("Login")
 
 # Side-by-side layout for username and PIN code
 #col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
@@ -584,14 +588,21 @@ login = st.sidebar.button("Login")
 #with col3:
 #    login = st.button("Login",use_container_width=True)
 
-# Login Validation
-if login:
-    if username in USER_DATABASE and pincode == USER_DATABASE[username]:
-        st.success(f"Welcome, {username}!")
-        #time.sleep(3)
-        #st.empty()
-    else:
-        st.error("Invalid username or PIN code. Please try again.")
+    # Login Validation
+    if login:
+        if username in USER_DATABASE and pincode == USER_DATABASE[username]:
+            st.success(f"Welcome, {username}!")
+            #time.sleep(3)
+            #st.empty()
+        else:
+            st.error("Invalid username or PIN code. Please try again.")
+else:
+    # Content after login
+    st.sidebar.write(f"Welcome back!")
+    if st.sidebar.button("Logout"):
+        st.session_state['logged_in'] = False  # Log out and show login UI again
+        st.experimental_rerun()  # Rerun the app to reset sidebar state
+
 
 ### MAIN CONTENT that is displayed when login was successfull
 if username and pincode:
@@ -631,25 +642,26 @@ if username and pincode:
 
                 # Try to append to the existing log file or create a new one
                 # TODO: this is quite slow because it does two syncs. how can i get this to be faster?
-                try:
-                    # fetch file from GoogleDrive to Local
-                    log = fetch_file_from_drive("pushup_log.csv")
-                    # append local file with current push-ups
-                    log = pd.concat([log, new_entry], ignore_index=True)
+                with st.spinner('Working on it...'):
+                    try:
+                        # fetch file from GoogleDrive to Local
+                        log = fetch_file_from_drive("pushup_log.csv")
+                        # append local file with current push-ups
+                        log = pd.concat([log, new_entry], ignore_index=True)
 
-                    # push the updated local log file to Google Drive
-                    push_file_to_drive(log, "pushup_log.csv")
+                        # push the updated local log file to Google Drive
+                        push_file_to_drive(log, "pushup_log.csv")
 
-                    # Placeholder success message
-                    success_message = st.empty()
-                    formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
-                    success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
-                    time.sleep(2)
-                    # Clear the message
-                    success_message.empty()
+                        # Placeholder success message
+                        success_message = st.empty()
+                        formatted_timestamp = german_time.strftime('%Y-%m-%d %H:%M')
+                        success_message.success(f"Logged {pushups} push-ups at {formatted_timestamp}")
+                        time.sleep(2)
+                        # Clear the message
+                        success_message.empty()
 
-                except Exception as e:
-                    st.error(f"Error writing to file: {e}")
+                    except Exception as e:
+                        st.error(f"Error writing to file: {e}")
 
         ### SHOW RECENT ENTRIES
         st.subheader("")
