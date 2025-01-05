@@ -629,7 +629,7 @@ if st.session_state['logged_in']:
     
     ### FILTER SECTION WAS REMOVED HERE BECAUSE PLOTLY IS CAPABLE OF DOING THIS
 
-    user_selection = log_data['User'].unique(),
+    user_selection = list(log_data['User'].unique())
 
     if st.button("Show/Refresh Visualization"):
         # TODO: make it so that the vis is displayed but only updated by the button
@@ -664,7 +664,7 @@ if st.session_state['logged_in']:
             #    default=list(log_data_2022['User'].unique()),  # Set default to all unique users
             #    key="user_selection_2022"
             #    )
-            user_selection_2022 = log_data_2022['User'].unique()
+            user_selection_2022 = list(log_data_2022['User'].unique())
             display_accumulated_pushups(log_data_2022, user_selection_2022)
             display_time_series_pushups(log_data_2022, user_selection_2022)
 
