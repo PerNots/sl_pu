@@ -810,7 +810,7 @@ if not st.session_state['logged_in']:
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
         st.markdown(
-                '<p style="font-size:12px; color:gray; margin-bottom:2px;">Start typing your name to find it quicker</p>', 
+                '<p style="font-size:12px; color:gray; margin:4px 0px 4px 0px;">Start typing your name to find it quicker</p>', 
                 unsafe_allow_html=True
             )
     # Login Validation
