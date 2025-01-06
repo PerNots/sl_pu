@@ -800,7 +800,7 @@ if 'username' not in st.session_state:
 
 if not st.session_state['logged_in']:
     with st.form(key='login_form'):
-        st.markdown("### Start typing your name to find it quicker")  # Markdown header for visibility        
+        st.markdown('<p style="font-size:10px; color:gray;">Start typing your name to find it quicker</p>', unsafe_allow_html=True)  # Adjust font size        
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
