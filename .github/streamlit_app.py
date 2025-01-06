@@ -800,7 +800,6 @@ if 'username' not in st.session_state:
 
 if not st.session_state['logged_in']:
     with st.form(key='login_form'):
-        st.markdown('<p style="font-size:10px; color:gray;">Start typing your name to find it quicker</p>', unsafe_allow_html=True)  # Adjust font size        
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
@@ -810,6 +809,7 @@ if not st.session_state['logged_in']:
             pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
+        st.markdown('<p style="font-size:12px; color:gray;">Start typing your name to find it quicker</p>', unsafe_allow_html=True)  # Adjust font size        
 
     # Login Validation
     if login:
