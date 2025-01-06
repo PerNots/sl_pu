@@ -800,7 +800,8 @@ if 'username' not in st.session_state:
 
 if not st.session_state['logged_in']:
     with st.form(key='login_form'):
-        st.markdown("### Start typing your name to find it quicker")  # Markdown header for visibility        col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
+        st.markdown("### Start typing your name to find it quicker")  # Markdown header for visibility        
+        col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
             username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
