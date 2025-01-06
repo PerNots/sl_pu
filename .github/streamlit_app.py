@@ -809,8 +809,10 @@ if not st.session_state['logged_in']:
             pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
-        st.markdown('<p style="font-size:12px; color:gray;">Start typing your name to find it quicker</p>', unsafe_allow_html=True)  # Adjust font size        
-
+        st.markdown(
+                '<p style="font-size:12px; color:gray; margin-bottom:2px;">Start typing your name to find it quicker</p>', 
+                unsafe_allow_html=True
+            )
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
