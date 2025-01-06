@@ -800,6 +800,7 @@ if 'username' not in st.session_state:
 
 if not st.session_state['logged_in']:
     with st.form(key='login_form'):
+        st.text("start typing your name to find it quicker")
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
@@ -1039,8 +1040,8 @@ st.subheader("")
 # - with plotly, i actually don't need the user selection anymore because it can be done within the plot
 # - waterfall chart where user and a certain value is set and then the deviation from that value is shown per day
 # - # TODO: Graph average over time (PERSONAL, NOT ALL USER'S DATA)
+# - check whether stddev and 7day floating average will be working in a few days
 
 
-
-
+# - TODO: loggin pushups removes the login field .. whyyyy
 
