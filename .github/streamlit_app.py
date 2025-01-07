@@ -799,12 +799,13 @@ if 'username' not in st.session_state:
     st.session_state['username'] = None
 
 if not st.session_state.get('logged_in', False):
-    # Get query parameters
+    # Debugging: Print the raw query parameters
     query_params = st.query_params
+    st.write(f"Query parameters: {query_params}")
+
+    # Get prefilled username from query parameters
     prefilled_username = query_params.get("username", [None])[0]  # Default to None if not found
-    
-    if prefilled_username:  # Check if username is provided in the query params
-        st.write(f"Prefilled username from URL: {prefilled_username}")
+    st.write(f"Prefilled username from URL: {prefilled_username}")
 
     with st.form(key='login_form'):
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
