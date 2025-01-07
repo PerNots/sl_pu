@@ -798,10 +798,14 @@ if 'logged_in' not in st.session_state:
 if 'username' not in st.session_state:
     st.session_state['username'] = None
 
-if not st.session_state['logged_in']:
+if not st.session_state.get('logged_in', False):
     # Get query parameters
     query_params = st.query_params
     prefilled_username = query_params.get("username", [None])[0]  # Default to None if not found
+    
+    if prefilled_username:  # Check if username is provided in the query params
+        st.write(f"Prefilled username from URL: {prefilled_username}")
+
     with st.form(key='login_form'):
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
@@ -811,7 +815,7 @@ if not st.session_state['logged_in']:
                 options=list(USER_DATABASE.keys()),
                 index=list(USER_DATABASE.keys()).index(prefilled_username)
                 if prefilled_username in USER_DATABASE.keys()
-                else 0,  # Set prefilled user or default to first
+                else 0,  # Default to first option if no match
                 label_visibility="collapsed",
                 placeholder="Username",
                 key="username_select"  # Assign a unique key
