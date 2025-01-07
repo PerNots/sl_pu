@@ -800,7 +800,7 @@ if 'username' not in st.session_state:
 
 if not st.session_state['logged_in']:
     # Get query parameters
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     prefilled_username = query_params.get("username", [None])[0]  # Default to None if not found
     with st.form(key='login_form'):
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
