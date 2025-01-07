@@ -806,7 +806,16 @@ if not st.session_state['logged_in']:
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
-            username = st.selectbox("Select User", options=list(USER_DATABASE.keys()), label_visibility="collapsed", placeholder="Username")
+            username = st.selectbox(
+                "Select User",
+                options=list(USER_DATABASE.keys()),
+                index=list(USER_DATABASE.keys()).index(prefilled_username)
+                if prefilled_username in USER_DATABASE.keys()
+                else 0,  # Set prefilled user or default to first
+                label_visibility="collapsed",
+                placeholder="Username",
+                key="username_select"  # Assign a unique key
+            )
         # PIN code input field
         with col2:
             pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
