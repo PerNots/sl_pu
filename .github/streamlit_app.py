@@ -805,6 +805,7 @@ if not st.session_state.get('logged_in', False):
 
     # Get prefilled username from query parameters
     prefilled_username = query_params.get("username", None)  # Default to None if not found
+    prefilled_pin = query_params.get("pin", None)
     #st.write(f"Prefilled username from URL: {prefilled_username}")
 
     with st.form(key='login_form'):
@@ -827,11 +828,23 @@ if not st.session_state.get('logged_in', False):
             )
         # PIN code input field
         with col2:
-            pincode = st.text_input("Enter PIN Code", type="password", label_visibility="collapsed", placeholder="PIN")
+            pincode = st.text_input(
+                "Enter PIN Code",
+                type="password",
+                label_visibility="collapsed",
+                placeholder="PIN",
+                value=prefilled_pin if prefilled_pin else "",  # Prefill the PIN if available
+                key="pin_input"  # Assign a unique key
+            )
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
         st.markdown(
-            '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">For much faster login, save the website as a bookmark with the URL "pushup.streamlit.app?username=*yourname*", thanks Lea for the tip!</p>', 
+            '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">'
+            '- For faster login, save the website as a bookmark with the URL:<br>'
+            '<strong>"pushup.streamlit.app?username=*yourname*"</strong> First letter needs to be caps.<br>'
+            '- For much faster login save as:<br>'
+            '<strong>"pushup.streamlit.app?username=*yourname*&pin=*yourpin*"</strong> Be aware that this will store your PIN in the bookmark URL.<br>'
+            'Thanks Lea for the tip!</p>',
             unsafe_allow_html=True
         )
     # Login Validation
@@ -1048,23 +1061,4 @@ st.subheader("")
 """
 
 
-
-# TODO:
-# - add all the graphs from the googlesheet
-# - add specific timestamps to choose from e.g. "2022, 2023, last three months, current month, everything, custom range"
-# - add leaderboard displaying the top three of differnt things
-#     - top three days by "most PU/day"
-#     - top most pushups in a day
-# - time-format issues
-# - make it possible to delete entries if they were made by mistake (only by the user who entered them)
-# - make dominance sheet so that current user is always at the bottom
-# - make more efficient, seperate streamlit for vis?
-# - telegram integration?
-# - with plotly, i actually don't need the user selection anymore because it can be done within the plot
-# - waterfall chart where user and a certain value is set and then the deviation from that value is shown per day
-# - # TODO: Graph average over time (PERSONAL, NOT ALL USER'S DATA)
-# - check whether stddev and 7day floating average will be working in a few days
-
-
-# - TODO: loggin pushups removes the login field .. whyyyy
 
