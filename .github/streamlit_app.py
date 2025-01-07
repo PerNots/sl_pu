@@ -801,11 +801,11 @@ if 'username' not in st.session_state:
 if not st.session_state.get('logged_in', False):
     # Debugging: Print the raw query parameters
     query_params = st.query_params
-    st.write(f"Query parameters: {query_params}")
+    #st.write(f"Query parameters: {query_params}")
 
     # Get prefilled username from query parameters
     prefilled_username = query_params.get("username", None)  # Default to None if not found
-    st.write(f"Prefilled username from URL: {prefilled_username}")
+    #st.write(f"Prefilled username from URL: {prefilled_username}")
 
     with st.form(key='login_form'):
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
@@ -831,9 +831,9 @@ if not st.session_state.get('logged_in', False):
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
         st.markdown(
-                '<p style="font-size:12px; color:gray; margin:4px 0px 4px 0px;">Start typing your name to find it quicker</p>', 
-                unsafe_allow_html=True
-            )
+            '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">For much faster login, save the website as a bookmark with the URL "pushup.streamlit.app?username=*yourname*", thanks Lea for the tip!</p>', 
+            unsafe_allow_html=True
+        )
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
