@@ -804,7 +804,7 @@ if not st.session_state.get('logged_in', False):
     st.write(f"Query parameters: {query_params}")
 
     # Get prefilled username from query parameters
-    prefilled_username = query_params.get("username", [None])[0]  # Default to None if not found
+    prefilled_username = query_params.get("username", None)  # Default to None if not found
     st.write(f"Prefilled username from URL: {prefilled_username}")
 
     with st.form(key='login_form'):
