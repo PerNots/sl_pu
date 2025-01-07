@@ -810,12 +810,16 @@ if not st.session_state.get('logged_in', False):
         col1, col2, col3 = st.columns([2, 2, 1])  # Adjust column ratios as needed
         # User selection dropdown
         with col1:
+            username_options = list(USER_DATABASE.keys())
+            matching_index = (
+                username_options.index(prefilled_username)
+                if prefilled_username in username_options
+                else 0  # Default to first option if no match
+            )
             username = st.selectbox(
                 "Select User",
-                options=list(USER_DATABASE.keys()),
-                index=list(USER_DATABASE.keys()).index(prefilled_username)
-                if prefilled_username in USER_DATABASE.keys()
-                else 0,  # Default to first option if no match
+                options=username_options,
+                index=matching_index,
                 label_visibility="collapsed",
                 placeholder="Username",
                 key="username_select"  # Assign a unique key
