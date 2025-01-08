@@ -18,6 +18,9 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload # Downloader
 from googleapiclient.http import MediaIoBaseUpload
 
+st.set_page_config(page_title="Pushup-Tracker")
+
+
 ### SET TIME ZONE TO GERMANY - BERLIN
 # Get the German timezone (CET/CEST)
 # Get the current time in UTC and convert it to German time
@@ -786,7 +789,6 @@ st.markdown(
 USER_COLORS = generate_user_colors(USER_DATABASE)  # Viridis-based color mapping
 
 #st.text(USER_COLORS)
-
 # Title for the app
 st.title("Push-Up Tracker.")
 
