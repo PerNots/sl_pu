@@ -249,9 +249,9 @@ def display_monthly_accumulated_pushups(log_data, user_selection):
             x="Timestamp",
             y="Accumulated Pushups",
             color="User",
-            color_discrete_map=USER_COLORS,
-            labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"},
-            #title=f"Accumulated Pushups for {selected_month}"
+            color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
+            category_orders={"User": list(USER_COLORS.keys())},  # Ensure consistent color order
+            labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
         )
 
         # Show the chart
