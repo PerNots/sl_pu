@@ -177,6 +177,52 @@ def generate_user_colors(user_database):
     user_colors = {user: mcolors.to_hex(palette[i]) for i, user in enumerate(users)}
     return user_colors
 
+# let's user delete his/her own last three entries if they were made by mistake
+# TODO: What happens when sombeody logs pushups between the user clicking and submitting the form?!?!?!
+def manage_user_entries(log_data, user_selection):
+    """
+    Allow a user to delete one or more of their last three activities using a form.
+
+    :param log_data: DataFrame containing the pushup logs with 'Timestamp', 'Pushups', and 'User' columns.
+    :param user_selection: The selected user whose entries can be managed.
+    """
+    try:
+        # Filter data for the selected user
+        user_data = log_data[log_data['User'] == user_selection].copy()
+
+        # Display the last three activities
+        recent_activities = user_data.sort_values(by='Timestamp', ascending=False).head(3)
+
+        st.write(f"Here you can delete the Last Three Activities for {user_selection}")
+
+        # Create a form to allow selection and deletion of entries
+        with st.form("delete_entries_form"):
+            delete_ids = []
+            for idx, row in recent_activities.iterrows():
+                # Add checkboxes within the form
+                if st.checkbox(
+                    f"{row['Timestamp']} - {row['Pushups']} pushups)",
+                    key=f"delete_{idx}"
+                ):
+                    delete_ids.append(idx)
+
+            # Submit button for the form
+            submitted = st.form_submit_button("Delete Selected Entries")
+
+            if submitted:
+                if delete_ids:
+                    # Drop the selected entries from the DataFrame
+                    log_data.drop(delete_ids, inplace=True)
+                    st.success("Selected entries deleted successfully.")
+                    # Save the updated log data to preserve changes (if needed)
+                    push_file_to_drive(log_data, "pushup_log.csv")
+                else:
+                    st.warning("No entries were selected for deletion.")
+
+    except Exception as e:
+        st.error(f"Error managing entries: {e}")
+
+
 # graph for accum pushups
 def display_accumulated_pushups(log_data, user_selection):
     try:
@@ -984,6 +1030,8 @@ if st.session_state['logged_in']:
     st.header("Recent entries")
     display_recent_entries(st.session_state.log_data)
     #display_last_five_entries(log_data)
+    with st.expander("Did a mistake?"):
+        manage_user_entries(st.session_state.log_data, username)
     
     ### SHOW TODAYS PUSHUPS PER USER
     st.subheader("")
