@@ -18,7 +18,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload # Downloader
 from googleapiclient.http import MediaIoBaseUpload
 
-st.set_page_config(page_title="Pushup-Tracker", page_icon="random")
+st.set_page_config(page_title="Pushup-Tracker", page_icon="carrot")
 
 
 ### SET TIME ZONE TO GERMANY - BERLIN
@@ -511,8 +511,8 @@ def display_user_stats(log_data, user_selection):
         daily_pushups = user_data.groupby('Date')['Pushups'].sum()
 
         # Create a complete date range from the start date to the latest recorded date
-        all_dates = pd.date_range(start=start_date, end=daily_pushups.index.max(), freq='D')
-
+        all_dates = pd.date_range(start=start_date, end=datetime.today().date(), freq='D')
+        
         # Reindex the daily pushups data to include all dates, filling missing days with 0
         daily_pushups_full = daily_pushups.reindex(all_dates, fill_value=0)
 
