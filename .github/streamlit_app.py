@@ -893,15 +893,16 @@ if not st.session_state.get('logged_in', False):
             )
         with col3:
             login = st.form_submit_button("Login", use_container_width=True)  # This button now submits the form
-        st.markdown(
-            '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">'
-            '- For faster login, save the website as a bookmark with the URL:<br>'
-            '<strong>"pushup.streamlit.app?username=*yourname*"</strong> First letter needs to be caps.<br>'
-            '- For much faster login save as:<br>'
-            '<strong>"pushup.streamlit.app?username=*yourname*&pin=*yourpin*"</strong> Be aware that this will store your PIN in the bookmark URL.<br>'
-            'Thanks Lea for the tip!</p>',
-            unsafe_allow_html=True
-        )
+        with st.expander("Want to log-in faster?"):
+            st.markdown(
+                '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">'
+                '- For faster login, save the website as a bookmark with the URL:<br>'
+                '<strong>"pushup.streamlit.app?username=*yourname*"</strong> First letter needs to be caps.<br>'
+                '- For much faster login save as:<br>'
+                '<strong>"pushup.streamlit.app?username=*yourname*&pin=*yourpin*"</strong> Be aware that this will store your PIN in the bookmark URL.<br>'
+                'Thanks Lea for the tip!</p>',
+                unsafe_allow_html=True
+            )
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
