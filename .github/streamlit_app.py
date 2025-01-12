@@ -497,36 +497,37 @@ def display_user_stats(log_data, user_selection):
     """
     try:
         # Filter the data for the selected user
-        user_data = log_data[log_data['User'] == user_selection]
+        user_data = log_data[log_data['User'] == user_selection].copy()
 
-        # Calculate the total pushups
-        total_pushups = user_data['Pushups'].sum()
+        # Convert the Timestamp column to datetime
+        user_data['Timestamp'] = pd.to_datetime(user_data['Timestamp'])
 
-        # Calculate the average pushups
-        #average_pushups = user_data['Pushups'].mean()
-
-        # Calculate the average pushups per day since and including 31.12.2024
+        # Set a start date for tracking stats (e.g., from 31.12.2024 onward)
         start_date = datetime(2024, 12, 31)
-        user_data_since = user_data[user_data['Timestamp'] >= start_date]
+        user_data = user_data[user_data['Timestamp'] >= start_date]
 
-        # Group by day and sum the pushups for each day
-        daily_pushups = user_data_since.groupby(user_data_since['Timestamp'].dt.date)['Pushups'].sum()
-
-        # Calculate the average pushups per day from 31.12.2024 onward
-        average_pushups = daily_pushups.mean().round(1)
-
-        # Group by day and sum the pushups for each day
+        # Create a daily pushups series, summing pushups by day
         user_data['Date'] = user_data['Timestamp'].dt.date
         daily_pushups = user_data.groupby('Date')['Pushups'].sum()
-        # Create a complete date range from the earliest to the latest date in the data
-        all_dates = pd.date_range(start=daily_pushups.index.min(), end=daily_pushups.index.max(), freq='D')
+
+        # Create a complete date range from the start date to the latest recorded date
+        all_dates = pd.date_range(start=start_date, end=daily_pushups.index.max(), freq='D')
+
         # Reindex the daily pushups data to include all dates, filling missing days with 0
         daily_pushups_full = daily_pushups.reindex(all_dates, fill_value=0)
-        # Calculate the 7-day floating average, including days with no pushups
+
+        # Calculate the total pushups
+        total_pushups = daily_pushups_full.sum()
+
+        # Calculate the average pushups per day
+        average_pushups = daily_pushups_full.mean().round(1)
+
+        # Calculate the 7-day floating average
         daily_pushups_7day_avg = daily_pushups_full.rolling(window=7, min_periods=1).mean().round(1)
 
         # Calculate the expected pushups for 31.12.2025
-        days_to_2025 = (datetime(2025, 12, 31) - user_data['Timestamp'].max()).days
+        end_date = datetime(2025, 12, 31)
+        days_to_2025 = (end_date - daily_pushups_full.index[-1]).days
         expected_pushups_2025 = (average_pushups * days_to_2025).round(0)
 
         # Calculate the standard deviation of pushups
@@ -535,13 +536,16 @@ def display_user_stats(log_data, user_selection):
         # Create a summary DataFrame
         stats = {
             "Metric": ["Name", "Total Pushups", "Average Pushups", "7-Day Floating Average", "Expected Pushups for 31.12.2025", "Standard Deviation"],
-            "Value": [username, total_pushups, average_pushups, daily_pushups_7day_avg.iloc[-1], expected_pushups_2025, std_dev_pushups]
+            "Value": [user_selection, total_pushups, average_pushups, daily_pushups_7day_avg.iloc[-1], expected_pushups_2025, std_dev_pushups]
         }
         stats_df = pd.DataFrame(stats)
 
         # Display the stats table
-        #st.write(f"### {user_selection}'s Pushup Stats")
-        st.dataframe(stats_df,hide_index=True)
+        st.write(f"### {user_selection}'s Pushup Stats")
+        st.dataframe(stats_df, hide_index=True)
+
+    except Exception as e:
+        st.error(f"Error calculating user stats: {e}")
 
     except Exception as e:
         st.error(f"Error calculating stats for {user_selection}: {e}")
