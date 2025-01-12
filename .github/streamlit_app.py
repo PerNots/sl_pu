@@ -201,7 +201,7 @@ def manage_user_entries(log_data, user_selection):
             for idx, row in recent_activities.iterrows():
                 # Add checkboxes within the form
                 if st.checkbox(
-                    f"{row['Timestamp']} - {row['Pushups']} pushups)",
+                    f"{row['Timestamp']} - {row['Pushups']} pushups",
                     key=f"delete_{idx}"
                 ):
                     delete_ids.append(idx)
