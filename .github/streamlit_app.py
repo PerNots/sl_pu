@@ -193,7 +193,8 @@ def manage_user_entries(log_data, user_selection):
         # Display the last three activities
         recent_activities = user_data.sort_values(by='Timestamp', ascending=False).head(3)
 
-        st.write(f"Here you can delete the Last Three Activities for {user_selection}")
+        st.write(f"Here you can delete the Last Three Activities for '{user_selection}'")
+        st.text("Afterwards you will have to reload the app to see the changes. That's what you get for clicking too fast.")
 
         # Create a form to allow selection and deletion of entries
         with st.form("delete_entries_form"):
