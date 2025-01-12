@@ -18,7 +18,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload # Downloader
 from googleapiclient.http import MediaIoBaseUpload
 
-st.set_page_config(page_title="Pushup-Tracker")
+st.set_page_config(page_title="Pushup-Tracker", page_icon="random")
 
 
 ### SET TIME ZONE TO GERMANY - BERLIN
@@ -207,6 +207,54 @@ def display_accumulated_pushups(log_data, user_selection):
 
     except Exception as e:
         st.error(f"Error reading or plotting accumulated data: {e}")
+
+# Graph for accumulated pushups filtered by month
+def display_monthly_accumulated_pushups(log_data, user_selection):
+    try:
+        # Ensure the 'Timestamp' column is in datetime format
+        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+
+        # Extract year and month for filtering
+        log_data['YearMonth'] = log_data['Timestamp'].dt.to_period('M')
+
+        # Get the current month as the default selection
+        current_month = pd.Timestamp.now().to_period('M')
+
+        # Create a dropdown in Streamlit to select the month
+        month_selection = st.selectbox(
+            "Select a month to display",
+            options=log_data['YearMonth'].unique(),
+            index=list(log_data['YearMonth'].unique()).index(current_month) if current_month in log_data['YearMonth'].unique() else 0
+        )
+
+        # Filter data for the selected month
+        filtered_month_data = log_data[log_data['YearMonth'] == month_selection]
+
+        # Create a new column with the accumulated sum of push-ups per user
+        filtered_month_data['Accumulated Pushups'] = filtered_month_data.groupby('User')['Pushups'].cumsum()
+
+        # Filter data based on selected users
+        if user_selection:
+            filtered_data = filtered_month_data[filtered_month_data['User'].isin(user_selection)]
+
+            # Create a Plotly line chart for the accumulated pushups data
+            accumulated_chart = px.line(
+                filtered_data,
+                x="Timestamp",  # X-axis as Timestamp
+                y="Accumulated Pushups",  # Y-axis as accumulated pushups
+                color="User",  # Color by user
+                color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
+                labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
+            )
+
+            # Show the chart in Streamlit
+            st.plotly_chart(accumulated_chart, use_container_width=True)
+        else:
+            st.write("No users selected. Please select at least one user to display the graph.")
+
+    except Exception as e:
+        st.error(f"Error reading or plotting monthly accumulated data: {e}")
+
 
 # graph for pushups over time
 def display_time_series_pushups(log_data, user_selection):
@@ -771,7 +819,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Some new features dropped. Hurrah. Hurrah. Test them out while they are still warm and send suggestions at the bottom of the applet. Timezone is now CET/CEST (the German one). Sorry to the Estonians :(. Heatmap now looks much prettier. Cheers. Happy pushing.</div>
+        <div class="banner-text">Newest feature: Accumulated push-ups are now displayed month-wise (in addition to the full-year-view). Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
@@ -954,9 +1002,13 @@ if st.session_state['logged_in']:
 
     if st.button("Show/Refresh Visualization"):
         # TODO: make it so that the vis is displayed but only updated by the button
-        ## DISPLAY the accumulated push-ups graph
+        
         st.subheader("Accumulated Push-Ups")
-        st.text("Accumulated, unstacked")
+        st.text("Accumulated, unstacked, monthly")
+        display_monthly_accumulated_pushups
+        
+        ## DISPLAY the accumulated push-ups graph
+        st.text("Accumulated, unstacked, full year")
         display_accumulated_pushups(st.session_state.log_data, user_selection)
 
         ## DISPLAY the original push-ups over time graph
