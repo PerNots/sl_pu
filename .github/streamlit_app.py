@@ -407,7 +407,7 @@ def display_last_five_entries(log_data):
         st.error(f"Error displaying the last five entries: {e}")
 
 # recent entries into log (more than 5, scrollable element)
-def display_recent_entries(log_data, num_entries=20):
+def display_recent_entries_legacy(log_data, num_entries=20):
     try:
         # Convert the Timestamp column to datetime format if it's not already
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
@@ -423,6 +423,25 @@ def display_recent_entries(log_data, num_entries=20):
             use_container_width = True,
             hide_index = True
         )
+    except Exception as e:
+        st.error(f"Error displaying the recent entries: {e}")
+
+# columns not clickable
+def display_recent_entries(log_data, num_entries=20):
+    try:
+        # Convert the Timestamp column to datetime format if it's not already
+        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+
+        # Extract the Date and Time from the Timestamp
+        log_data['Date'] = log_data['Timestamp'].dt.date
+        log_data['Time'] = log_data['Timestamp'].dt.time
+
+        # Select the relevant columns and get the most recent entries
+        recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
+
+        # Use st.write with a styled dataframe to prevent sorting
+        styled_table = recent_entries.style.hide_index()  # Hide the index
+        st.write(styled_table)
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
@@ -1005,7 +1024,7 @@ if st.session_state['logged_in']:
         
         st.subheader("Accumulated Push-Ups")
         st.text("Accumulated, unstacked, monthly")
-        display_monthly_accumulated_pushups
+        display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
         
         ## DISPLAY the accumulated push-ups graph
         st.text("Accumulated, unstacked, full year")
