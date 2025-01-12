@@ -211,50 +211,54 @@ def display_accumulated_pushups(log_data, user_selection):
 # Graph for accumulated pushups filtered by month
 def display_monthly_accumulated_pushups(log_data, user_selection):
     try:
-        # Ensure the 'Timestamp' column is in datetime format
+        # Convert the Timestamp column to datetime format
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
+        log_data['Month'] = log_data['Timestamp'].dt.to_period('M')  # Extract month as a period
 
-        # Extract year and month for filtering
-        log_data['YearMonth'] = log_data['Timestamp'].dt.to_period('M')
+        # Get unique months for the dropdown and set the default to the current month
+        unique_months = log_data['Month'].dt.strftime('%Y-%m').unique()
+        current_month = pd.Timestamp.now().to_period('M').strftime('%Y-%m')
 
-        # Get the current month as the default selection
-        current_month = pd.Timestamp.now().to_period('M')
+        # Initialize session state for the month selector if not set
+        if "selected_month" not in st.session_state:
+            st.session_state.selected_month = current_month
 
-        # Create a dropdown in Streamlit to select the month
-        month_selection = st.selectbox(
-            "Select a month to display",
-            options=log_data['YearMonth'].unique(),
-            index=list(log_data['YearMonth'].unique()).index(current_month) if current_month in log_data['YearMonth'].unique() else 0
+        # Dropdown for selecting the month, directly linked to session state
+        selected_month = st.selectbox(
+            "Select a month to display:",
+            unique_months,
+            index=list(unique_months).index(st.session_state.selected_month),
+            key="selected_month"
         )
 
         # Filter data for the selected month
-        filtered_month_data = log_data[log_data['YearMonth'] == month_selection]
+        filtered_data = log_data[log_data['Month'].dt.strftime('%Y-%m') == selected_month]
 
-        # Create a new column with the accumulated sum of push-ups per user
-        filtered_month_data['Accumulated Pushups'] = filtered_month_data.groupby('User')['Pushups'].cumsum()
-
-        # Filter data based on selected users
+        # Filter data for selected users
         if user_selection:
-            filtered_data = filtered_month_data[filtered_month_data['User'].isin(user_selection)]
+            filtered_data = filtered_data[filtered_data['User'].isin(user_selection)]
 
-            # Create a Plotly line chart for the accumulated pushups data
-            accumulated_chart = px.line(
-                filtered_data,
-                x="Timestamp",  # X-axis as Timestamp
-                y="Accumulated Pushups",  # Y-axis as accumulated pushups
-                color="User",  # Color by user
-                color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
-                labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
-            )
+        # Reset accumulated push-ups for the selected month
+        filtered_data['Accumulated Pushups'] = (
+            filtered_data.groupby('User')['Pushups'].cumsum()
+        )
 
-            # Show the chart in Streamlit
-            st.plotly_chart(accumulated_chart, use_container_width=True)
-        else:
-            st.write("No users selected. Please select at least one user to display the graph.")
+        # Plot the data
+        accumulated_chart = px.line(
+            filtered_data,
+            x="Timestamp",
+            y="Accumulated Pushups",
+            color="User",
+            color_discrete_map=USER_COLORS,
+            labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"},
+            #title=f"Accumulated Pushups for {selected_month}"
+        )
+
+        # Show the chart
+        st.plotly_chart(accumulated_chart, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Error reading or plotting monthly accumulated data: {e}")
-
+        st.error(f"Error reading or plotting accumulated data: {e}")
 
 # graph for pushups over time
 def display_time_series_pushups(log_data, user_selection):
@@ -407,7 +411,7 @@ def display_last_five_entries(log_data):
         st.error(f"Error displaying the last five entries: {e}")
 
 # recent entries into log (more than 5, scrollable element)
-def display_recent_entries_legacy(log_data, num_entries=20):
+def display_recent_entries(log_data, num_entries=20):
     try:
         # Convert the Timestamp column to datetime format if it's not already
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
@@ -426,24 +430,6 @@ def display_recent_entries_legacy(log_data, num_entries=20):
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
 
-# columns not clickable
-def display_recent_entries(log_data, num_entries=20):
-    try:
-        # Convert the Timestamp column to datetime format if it's not already
-        log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
-
-        # Extract the Date and Time from the Timestamp
-        log_data['Date'] = log_data['Timestamp'].dt.date
-        log_data['Time'] = log_data['Timestamp'].dt.time
-
-        # Select the relevant columns and get the most recent entries
-        recent_entries = log_data[['Date', 'Time', 'User', 'Pushups', 'comment']].tail(num_entries).iloc[::-1]
-
-        # Use st.write with a styled dataframe to prevent sorting
-        styled_table = recent_entries.style.hide_index()  # Hide the index
-        st.write(styled_table)
-    except Exception as e:
-        st.error(f"Error displaying the recent entries: {e}")
 
 # table giving push ups done on the day by specific user
 def display_pushups_today(log_data):
@@ -1008,8 +994,14 @@ if st.session_state['logged_in']:
     # TOO COMPETITIVE, TOO PERSONAL
     #with st.expander("Average pushups per day"):
     #    display_daily_average_pushups(st.session_state.log_data)
+
+    user_selection = list(st.session_state.log_data['User'].unique())
+
     with st.expander ("Heatmap of pushups"):
         display_pushup_heatmap(st.session_state.log_data)
+
+    with st.expander ("Accumulated pushups by month and user"):
+        display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
 
     ### VISUALIZATION
     st.subheader("")
@@ -1017,15 +1009,11 @@ if st.session_state['logged_in']:
     
     ### FILTER SECTION WAS REMOVED HERE BECAUSE PLOTLY IS CAPABLE OF DOING THIS
 
-    user_selection = list(st.session_state.log_data['User'].unique())
 
     if st.button("Show/Refresh Visualization"):
         # TODO: make it so that the vis is displayed but only updated by the button
         
         st.subheader("Accumulated Push-Ups")
-        st.text("Accumulated, unstacked, monthly")
-        display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
-        
         ## DISPLAY the accumulated push-ups graph
         st.text("Accumulated, unstacked, full year")
         display_accumulated_pushups(st.session_state.log_data, user_selection)
