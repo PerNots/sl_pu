@@ -483,7 +483,6 @@ def display_pushups_today(log_data):
     # Ensure the 'Timestamp' column is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
     # Get today's date (without time component)
-    #today = datetime.today().date()
     today = german_time.date()
     # Filter the DataFrame for today's pushups
     today_df = log_data[log_data['Timestamp'].dt.date == today]
@@ -493,11 +492,17 @@ def display_pushups_today(log_data):
         # Sort by pushups in descending order
         pushups_today = pushups_today.sort_values(by='Pushups', ascending=False).reset_index(drop=True)
         # Display the table with total pushups for each user today
-        st.dataframe(data=pushups_today, 
-                     hide_index=True)
+        st.dataframe(data=pushups_today, hide_index=True)
+        # Display the total pushups today
+        total_pushups_today = pushups_today['Pushups'].sum()
+        st.write(f"Total pushups today: {total_pushups_today}")
     else:
         # Display a message if no pushups were done today
         st.write("No pushups logged for today.")
+    
+    # Display the total pushups overall
+    total_pushups_overall = log_data['Pushups'].sum()
+    st.write(f"Total pushups overall: {total_pushups_overall}")
 
 # table giving the push up average (daily)
 def display_daily_average_pushups(log_data, start_date="2024-12-31"):
