@@ -502,7 +502,7 @@ def display_pushups_today(log_data):
     
     # Display the total pushups overall
     total_pushups_overall = log_data['Pushups'].sum()
-    st.write(f"Total pushups overall: {total_pushups_overall}")
+    st.write(f"Total pushups overall: {total_pushups_overall:,}")
 
 # table giving the push up average (daily)
 def display_daily_average_pushups(log_data, start_date="2024-12-31"):
