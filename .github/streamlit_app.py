@@ -345,7 +345,7 @@ def display_time_series_pushups(log_data, user_selection):
             # Customize the layout for better interaction
             fig.update_layout(
                 width=800,
-                height=400,
+                height=500,
                 xaxis_title="Date",
                 yaxis_title="Pushups",
                 margin=dict(l=40, r=40, t=40, b=40),
