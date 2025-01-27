@@ -1033,25 +1033,26 @@ if st.session_state['logged_in']:
 
     ### RICKROLL
     st.subheader("")
+
     # Initialize session state to keep track of expander state
-    if 'expander_opened' not in st.session_state:
-        st.session_state.expander_opened = False
+    if 'expander_opened2' not in st.session_state:
+        st.session_state.expander_opened2 = False
 
     # When expander is opened, set the state to True
-    with st.expander("EXCITING news!", expanded=st.session_state.expander_opened):
-        st.session_state.expander_opened = True
-        youtube_url = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"  # Autoplay on expansion
+    with st.expander("EXCITING news!", expanded=st.session_state.expander_opened2):
+        st.session_state.expander_opened2 = True  # This ensures it tracks the expander state
+        if st.session_state.expander_opened2:  # Check if expander is opened
+            youtube_url = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"  # Autoplay on expansion
 
-        # Embedding the YouTube video using HTML iframe
-        st.components.v1.html(
-            f"""
-            <iframe width="560" height="315" src="{youtube_url}" 
-                    frameborder="0" allow="autoplay; encrypted-media" 
-                    allowfullscreen></iframe>
-            """,
-            height=315,  # Adjust the height of the iframe
-        )
-
+            # Embedding the YouTube video using HTML iframe
+            st.components.v1.html(
+                f"""
+                <iframe width="560" height="315" src="{youtube_url}" 
+                        frameborder="0" allow="autoplay; encrypted-media" 
+                        allowfullscreen></iframe>
+                """,
+                height=315,  # Adjust the height of the iframe
+            )
 
 
     ### SHOW RECENT ENTRIES
