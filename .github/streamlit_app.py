@@ -1031,6 +1031,22 @@ if st.session_state['logged_in']:
                 except Exception as e:
                     st.error(f"Error writing to file: {e}")
 
+    ### RICKROLL
+    with st.expander("exciting news!"):
+        youtube_url = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"  # Add ?autoplay=1 for autoplay
+
+        # Embedding the YouTube video using HTML iframe
+        st.components.v1.html(
+            f"""
+            <iframe width="560" height="315" src="{youtube_url}" 
+                    frameborder="0" allow="autoplay; encrypted-media" 
+                    allowfullscreen></iframe>
+            """,
+            height=315,  # Adjust the height of the iframe
+        )
+
+
+
     ### SHOW RECENT ENTRIES
     st.subheader("")
     st.header("Recent entries")
