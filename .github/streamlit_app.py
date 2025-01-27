@@ -1032,8 +1032,15 @@ if st.session_state['logged_in']:
                     st.error(f"Error writing to file: {e}")
 
     ### RICKROLL
-    with st.expander("exciting news!"):
-        youtube_url = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"  # Add ?autoplay=1 for autoplay
+    st.subheader("")
+    # Initialize session state to keep track of expander state
+    if 'expander_opened' not in st.session_state:
+        st.session_state.expander_opened = False
+
+    # When expander is opened, set the state to True
+    with st.expander("EXCITING news!", expanded=st.session_state.expander_opened):
+        st.session_state.expander_opened = True
+        youtube_url = "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"  # Autoplay on expansion
 
         # Embedding the YouTube video using HTML iframe
         st.components.v1.html(
