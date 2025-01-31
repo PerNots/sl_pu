@@ -837,6 +837,100 @@ def display_daily_pushup_contributions(log_data, username):
     except Exception as e:
         st.error(f"Error: {e}")
 
+# function that displays the average of the currently logged in user over time (one entry per day) as well as the
+# amount of pushups done on that day. if the amount is below the average, display a red bar between the average line and
+# the value of pushups on that day, if there is a positive difference between the average on that day and the pushups done
+# on that day, display a green bar between the average line and the value of pushups on that day.
+def display_user_daily_average(log_data, username):
+    """
+    Displays a line chart showing the daily average of pushups for the current user,
+    with bars indicating the actual pushups done on each day. Green bars for above average,
+    red bars for below average.
+
+    :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
+    :param username: The current user to display the daily average for.
+    """
+    try:
+        # Ensure 'Timestamp' is in datetime format
+        log_data["Timestamp"] = pd.to_datetime(log_data["Timestamp"])
+
+        # Filter the data for the selected user
+        user_data = log_data[log_data['User'] == username].copy()
+
+        # Extract date component and sum pushups per user per day
+        user_data['Date'] = user_data['Timestamp'].dt.date
+        daily_totals = (
+            user_data
+            .groupby('Date')['Pushups']
+            .sum()
+            .reset_index()
+            .sort_values('Date')  # Ensure data is sorted by date
+        )
+
+        # Create a complete date range from the start date to the latest recorded date
+        start_date = daily_totals['Date'].min()
+        end_date = daily_totals['Date'].max()
+        all_dates = pd.date_range(start=start_date, end=end_date, freq='D')
+
+        # Reindex the daily pushups data to include all dates, filling missing days with 0
+        daily_totals_full = daily_totals.set_index('Date').reindex(all_dates, fill_value=0).reset_index().rename(columns={'index': 'Date'})
+
+        # Calculate the daily average pushups
+        daily_totals_full['Daily Average'] = daily_totals_full['Pushups'].expanding().mean().round(1)
+
+        # Create a Plotly figure
+        fig = go.Figure()
+
+        # Add a line for the daily average
+        fig.add_trace(go.Scatter(
+            x=daily_totals_full['Date'],
+            y=daily_totals_full['Daily Average'],
+            mode='lines',
+            name='Daily Average',
+            line=dict(width=2, color='blue')
+        ))
+
+        # Add bars for the actual pushups done each day
+        for i, row in daily_totals_full.iterrows():
+            if row['Pushups'] >= row['Daily Average']:
+                fig.add_trace(go.Bar(
+                    x=[row['Date']],
+                    y=[row['Pushups'] - row['Daily Average']],
+                    base=row['Daily Average'],
+                    name='Pushups',
+                    marker=dict(color='green'),
+                    hoverinfo='y'
+                ))
+            else:
+                fig.add_trace(go.Bar(
+                    x=[row['Date']],
+                    y=[row['Daily Average'] - row['Pushups']],
+                    base=row['Pushups'],
+                    name='Pushups',
+                    marker=dict(color='red'),
+                    hoverinfo='y'
+                ))
+
+        # Customize the layout
+        fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Average Pushups (blue), Pushups on that day (green/red)",
+            xaxis=dict(
+                tickformat="%b %-d",  # Display "Jan 1", "Jan 2", etc.
+            ),
+            showlegend=False,  # Remove the legend
+            template="plotly_white",
+            height=500,
+            width=800,
+            margin=dict(l=40, r=40, t=10, b=40),  # Adjust margins
+        )
+
+        # Display the chart in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
 
 ### GIMMICK AREA
 # Custom CSS for the banner
@@ -1077,6 +1171,9 @@ if st.session_state['logged_in']:
 
     with st.expander ("Accumulated pushups by month and user"):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
+
+    with st.expander ("Your average pushups evolving over time"):
+        display_user_daily_average(st.session_state.log_data, username)
 
     ### VISUALIZATION
     st.subheader("")
