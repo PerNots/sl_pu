@@ -1172,7 +1172,7 @@ if st.session_state['logged_in']:
     with st.expander ("Accumulated pushups by month and user"):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
 
-    with st.expander ("Your average pushups evolving over time"):
+    with st.expander ("Your average pushups evolving over time. NEW NEW NEW"):
         display_user_daily_average(st.session_state.log_data, username)
 
     ### VISUALIZATION
