@@ -843,7 +843,7 @@ def display_user_daily_average(log_data, username):
     """
     Displays a line chart showing the daily average of pushups for the current user,
     with bars indicating the actual pushups done on each day. Green bars for above average,
-    red bars for below average.
+    red bars for below average. Also shows the highest average line.
 
     :param log_data: DataFrame containing the pushup logs with columns 'Timestamp', 'Pushups', and 'User'.
     :param username: The current user to display the daily average for.
@@ -876,8 +876,21 @@ def display_user_daily_average(log_data, username):
         # Calculate the daily average pushups
         daily_totals_full['Daily Average'] = daily_totals_full['Pushups'].expanding().mean().round(1)
 
+        # Calculate the highest average pushups
+        highest_average = daily_totals_full['Daily Average'].max()
+
         # Create a Plotly figure
         fig = go.Figure()
+
+        # Add a line for the highest average
+        fig.add_trace(go.Scatter(
+            x=daily_totals_full['Date'],
+            y=[highest_average] * len(daily_totals_full),
+            mode='lines',
+            name='Highest Average',
+            line=dict(width=2, color='orange', dash='dash'),
+            hovertemplate=f'Highest Average: {highest_average}<extra></extra>'
+        ))
 
         # Add a line for the daily average
         fig.add_trace(go.Scatter(
