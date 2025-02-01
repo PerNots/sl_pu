@@ -433,7 +433,6 @@ def display_pushups_dominance_with_selection(log_data, user_selection, username)
     except Exception as e:
         st.error(f"Error: {e}")
 
-
 # last five entries into log
 def display_last_five_entries(log_data):
     try:
@@ -476,7 +475,6 @@ def display_recent_entries(log_data, num_entries=20):
         )
     except Exception as e:
         st.error(f"Error displaying the recent entries: {e}")
-
 
 # table giving push ups done on the day by specific user
 def display_pushups_today(log_data):
@@ -887,11 +885,12 @@ def display_user_daily_average(log_data, username):
             y=daily_totals_full['Daily Average'],
             mode='lines',
             name='Daily Average',
-            line=dict(width=2, color='blue')
+            line=dict(width=2, color='blue'),
+            hovertemplate='Date: %{x}<br>Daily Average: %{y}<extra></extra>'
         ))
 
         # Add bars for the actual pushups done each day
-        for i, row in daily_totals_full.iterrows():
+        for _, row in daily_totals_full.iterrows():
             if row['Pushups'] >= row['Daily Average']:
                 fig.add_trace(go.Bar(
                     x=[row['Date']],
@@ -899,16 +898,16 @@ def display_user_daily_average(log_data, username):
                     base=row['Daily Average'],
                     name='Pushups',
                     marker=dict(color='green'),
-                    hoverinfo='y'
+                    hovertemplate='Date: %{x}<br>Pushups: %{y}<extra></extra>'
                 ))
             else:
                 fig.add_trace(go.Bar(
                     x=[row['Date']],
                     y=[row['Daily Average'] - row['Pushups']],
-                    base=row['Pushups'],
+                    base=[row['Pushups']],
                     name='Pushups',
                     marker=dict(color='red'),
-                    hoverinfo='y'
+                    hovertemplate='Date: %{x}<br>Pushups: %{base}<br><extra></extra>'
                 ))
 
         # Customize the layout
@@ -930,7 +929,6 @@ def display_user_daily_average(log_data, username):
 
     except Exception as e:
         st.error(f"Error: {e}")
-
 
 ### GIMMICK AREA
 # Custom CSS for the banner
