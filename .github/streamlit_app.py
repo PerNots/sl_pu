@@ -1064,6 +1064,16 @@ if not st.session_state.get('logged_in', False):
                 'Thanks Lea for the tip!</p>',
                 unsafe_allow_html=True
             )
+        with st.expander("YOU LOOK MOTIVATED!"):
+            st.markdown(
+                '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">'
+                'Would you be even more motivated if you had push-messages to your phone when somebody logged pushups?<br>'
+                'It would require you to download an app (iOS and Android), login with a password and username and put a key in.<br>'
+                'Notifications can also be muted easily.<br>'
+                'It would require me to invest ~10$ into this, which i would gladly do if there is interest!<br>'
+                'Comment "WANT" with your next set of pushups if you like this to happen :D</p>',
+                unsafe_allow_html=True
+            )
     # Login Validation
     if login:
         if username in USER_DATABASE and pincode == USER_DATABASE[username]:
@@ -1183,7 +1193,7 @@ if st.session_state['logged_in']:
     with st.expander ("Accumulated pushups by month and user"):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
 
-    with st.expander ("Your average pushups evolving over time. NEW NEW NEW"):
+    with st.expander ("Your average pushups evolving over time"):
         display_user_daily_average(st.session_state.log_data, username)
 
     ### VISUALIZATION
@@ -1252,13 +1262,10 @@ if st.session_state['logged_in']:
     st.subheader("Stuff that will change (soon)")
     '''
     - get different color palette (suggestions welcome)
-    - allow deletion of last few own activities by user
-    - handle different timezones via user-database, will timezones register locally or globally?
-    - add visualizations that were established in googlesheet in the last years
+    - handle different timezones
     - allow users to set personal goals for the year
     - might add different disciplines (squats or pull-ups or w/e)
     - differentiate types of push-ups
-    - tackle possible issues when multiple users are adding push-ups at the same time
     - add prizes (cash or sexual favors. tbd.)
     '''
 
