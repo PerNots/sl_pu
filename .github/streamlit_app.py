@@ -1068,7 +1068,7 @@ if not st.session_state.get('logged_in', False):
             st.markdown(
                 '<p style="font-size:12px; color:gray; background-color:#d9fdd3; padding:6px; margin:4px 0px 4px 0px; border-radius:4px;">'
                 'Would you be even more motivated if you had push-messages to your phone when somebody logged pushups?<br>'
-                'It would require you to download an app (iOS and Android), login with a password and username and put a key in.<br>'
+                'It would require you to download an app (iOS and Android), login with a password and username and put a key in (once).<br>'
                 'Notifications can also be muted easily.<br>'
                 'It would require me to invest ~10$ into this, which i would gladly do if there is interest!<br>'
                 'Comment "WANT" with your next set of pushups if you like this to happen :D</p>',
