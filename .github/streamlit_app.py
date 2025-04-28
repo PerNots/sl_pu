@@ -1216,7 +1216,7 @@ if st.session_state['logged_in']:
         st.text("Accumulated, stacked")
         display_total_accumulated_pushups_by_user(st.session_state.log_data, username)
 
-    with st.expander ("Stacked bar plot of each day.")
+    with st.expander ("Stacked bar plot of each day."):
         st.text("Not-accumulated, stacked")
         display_daily_pushup_contributions(st.session_state.log_data, username)
     
