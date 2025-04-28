@@ -985,7 +985,7 @@ st.markdown(
 st.markdown(
     """
     <div class="banner-container">
-        <div class="banner-text">Newest feature: Accumulated push-ups are now displayed month-wise (in addition to the full-year-view). Cheers. Happy pushing.</div>
+        <div class="banner-text">Want to have pushup-notifications on your phone? Read the drop-down before logging in. Welcome to all the Estonians! Cheers. Happy pushing.</div>
     </div>
     """,
     unsafe_allow_html=True
