@@ -257,7 +257,7 @@ def display_accumulated_pushups(log_data, user_selection):
         st.error(f"Error reading or plotting accumulated data: {e}")
 
 # Graph for accumulated pushups filtered by month
-def display_monthly_accumulated_pushups(log_data, user_selection):
+def display_monthly_accumulated_pushups(log_data):
     try:
         # Convert the Timestamp column to datetime format
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
@@ -274,23 +274,13 @@ def display_monthly_accumulated_pushups(log_data, user_selection):
             index=list(unique_months).index(current_month),
         )
 
-        # Only set the expander flag if the user changed from the default
-        if selected_month != current_month:
-            st.session_state.monthly_opened_once = True
-
         # Filter data for the selected month
         filtered_data = log_data[log_data['Month'].dt.strftime('%Y-%m') == selected_month]
-
-        # Filter data for selected users
-        #TODO: I think the whole user_selection variable can be removed from here bc this is handled now by plotly functionality
-        if user_selection:
-            filtered_data = filtered_data[filtered_data['User'].isin(user_selection)]
 
         # Reset accumulated push-ups for the selected month
         filtered_data['Accumulated Pushups'] = (
             filtered_data.groupby('User')['Pushups'].cumsum()
         )
-
         # Plot the data
         accumulated_chart = px.line(
             filtered_data,
@@ -1192,21 +1182,15 @@ if st.session_state['logged_in']:
     st.subheader("")
     st.header("Visualization")
 
-    # Initialize expansion flags
-    for key in [
-        'heatmap_opened_once', 'heatmap_expanded_temp',
-        'monthly_opened_once', 'monthly_expanded_temp'
-    ]:
-        if key not in st.session_state:
-            st.session_state[key] = False
+    # TODO: Nowhere here is the user_selection actually needed since now plotly is employed to "filter" the data
 
     # Display heatmap
-    with st.expander("Pushup Heatmap", expanded=st.session_state.heatmap_opened_once):
+    with st.expander("Pushup Heatmap"):
         display_pushup_heatmap(st.session_state.log_data)
 
     # Display monthly accumulation
-    with st.expander("Accumulated pushups by month and user", expanded=st.session_state.monthly_opened_once):
-        display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
+    with st.expander("Accumulated pushups by month and user"):
+        display_monthly_accumulated_pushups(st.session_state.log_data)
 
     with st.expander ("Your average pushups evolving over time"):
         display_user_daily_average(st.session_state.log_data, username)
