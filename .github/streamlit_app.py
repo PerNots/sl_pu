@@ -1198,10 +1198,16 @@ if st.session_state['logged_in']:
         st.session_state.heatmap_opened_once = False
     if 'heatmap_expanded_temp' not in st.session_state:
         st.session_state.heatmap_expanded_temp = False
+    if 'monthly_opened_once' not in st.session_state:
+        st.session_state.monthly_opened_once = False
+    if 'monthly_expanded_temp' not in st.session_state:
+        st.session_state.monthly_expanded_temp = False
 
     # If user has just interacted (e.g. selected a user), mark expander as opened
     if st.session_state.heatmap_expanded_temp:
         st.session_state.heatmap_opened_once = True
+    if st.session_state.monthly_expanded_temp:
+        st.session_state.monthly_opened_once = True
 
     # Control expansion: expand only immediately after first interaction
     with st.expander("Pushup Heatmap", expanded=st.session_state.heatmap_opened_once):
@@ -1209,8 +1215,9 @@ if st.session_state['logged_in']:
         display_pushup_heatmap(st.session_state.log_data)
         st.session_state.heatmap_expanded_temp = True
 
-    with st.expander("Accumulated pushups by month and user", expanded=st.session_state.heatmap_opened_once):
+    with st.expander("Accumulated pushups by month and user", expanded=st.session_state.monthly_opened_once):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
+        st.session_state.monthly_expanded_temp = True
 
     with st.expander ("Your average pushups evolving over time"):
         display_user_daily_average(st.session_state.log_data, username)
