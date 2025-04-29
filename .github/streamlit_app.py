@@ -258,6 +258,10 @@ def display_accumulated_pushups(log_data, user_selection):
 
 # Graph for accumulated pushups filtered by month
 def display_monthly_accumulated_pushups(log_data, user_selection):
+    # Mark expander as opened if the user has interacted
+    if 'monthly_expanded_temp' in st.session_state:
+        st.session_state.monthly_opened_once = True
+    st.session_state.monthly_expanded_temp = True
     try:
         # Convert the Timestamp column to datetime format
         log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
@@ -610,6 +614,10 @@ def display_pushup_heatmap(log_data):
 
     :param log_data: DataFrame containing pushup logs with 'Timestamp', 'Pushups', and 'User' columns.
     """
+    # Mark expander as opened if the user has interacted
+    if 'heatmap_expanded_temp' in st.session_state:
+        st.session_state.heatmap_opened_once = True
+    st.session_state.heatmap_expanded_temp = True
     # Ensure 'Timestamp' is in datetime format
     log_data['Timestamp'] = pd.to_datetime(log_data['Timestamp'])
 
@@ -1193,31 +1201,21 @@ if st.session_state['logged_in']:
     st.subheader("")
     st.header("Visualization")
 
-    # Initialize session state for controlling expansion
-    if 'heatmap_opened_once' not in st.session_state:
-        st.session_state.heatmap_opened_once = False
-    if 'heatmap_expanded_temp' not in st.session_state:
-        st.session_state.heatmap_expanded_temp = False
-    if 'monthly_opened_once' not in st.session_state:
-        st.session_state.monthly_opened_once = False
-    if 'monthly_expanded_temp' not in st.session_state:
-        st.session_state.monthly_expanded_temp = False
+    # Initialize expansion flags
+    for key in [
+        'heatmap_opened_once', 'heatmap_expanded_temp',
+        'monthly_opened_once', 'monthly_expanded_temp'
+    ]:
+        if key not in st.session_state:
+            st.session_state[key] = False
 
-    # If user has just interacted (e.g. selected a user), mark expander as opened
-    if st.session_state.heatmap_expanded_temp:
-        st.session_state.heatmap_opened_once = True
-    if st.session_state.monthly_expanded_temp:
-        st.session_state.monthly_opened_once = True
-
-    # Control expansion: expand only immediately after first interaction
+    # Display heatmap
     with st.expander("Pushup Heatmap", expanded=st.session_state.heatmap_opened_once):
-        # Set temp flag to True after the first render when it's interacted with
         display_pushup_heatmap(st.session_state.log_data)
-        st.session_state.heatmap_expanded_temp = True
 
+    # Display monthly accumulation
     with st.expander("Accumulated pushups by month and user", expanded=st.session_state.monthly_opened_once):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
-        st.session_state.monthly_expanded_temp = True
 
     with st.expander ("Your average pushups evolving over time"):
         display_user_daily_average(st.session_state.log_data, username)
