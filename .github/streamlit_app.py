@@ -275,7 +275,7 @@ def display_monthly_accumulated_pushups(log_data, user_selection):
         selected_month = st.selectbox(
             "Select a month to display:",
             unique_months,
-            index=list(unique_months).index(st.session_state.selected_month),
+            #index=list(unique_months).index(st.session_state.selected_month),
             key="selected_month"
         )
 
