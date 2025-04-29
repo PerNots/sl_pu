@@ -271,17 +271,16 @@ def display_monthly_accumulated_pushups(log_data, user_selection):
         unique_months = log_data['Month'].dt.strftime('%Y-%m').unique()
         current_month = pd.Timestamp.now().to_period('M').strftime('%Y-%m')
 
-        # Initialize session state for the month selector if not set
-        if "selected_month" not in st.session_state:
-            st.session_state.selected_month = current_month
-
-        # Dropdown for selecting the month, directly linked to session state
+        # Show dropdown (do not link it to session state key directly!)
         selected_month = st.selectbox(
             "Select a month to display:",
             unique_months,
-            #index=list(unique_months).index(st.session_state.selected_month),
-            key="selected_month"
+            index=list(unique_months).index(current_month),
         )
+
+        # Only set the expander flag if the user changed from the default
+        if selected_month != current_month:
+            st.session_state.monthly_opened_once = True
 
         # Filter data for the selected month
         filtered_data = log_data[log_data['Month'].dt.strftime('%Y-%m') == selected_month]
