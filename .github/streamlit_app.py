@@ -246,6 +246,7 @@ def display_accumulated_pushups(log_data, user_selection):
                 color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
                 labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
             )
+            accumulated_chart.update_layout(height=900)  
 
             # Show the chart in Streamlit
             st.plotly_chart(accumulated_chart, use_container_width=True)
@@ -282,6 +283,7 @@ def display_monthly_accumulated_pushups(log_data, user_selection):
         filtered_data = log_data[log_data['Month'].dt.strftime('%Y-%m') == selected_month]
 
         # Filter data for selected users
+        #TODO: I think the whole user_selection variable can be removed from here bc this is handled now by plotly functionality
         if user_selection:
             filtered_data = filtered_data[filtered_data['User'].isin(user_selection)]
 
@@ -1191,8 +1193,21 @@ if st.session_state['logged_in']:
     st.subheader("")
     st.header("Visualization")
 
-    with st.expander ("Heatmap of pushups"):
+    # Initialize session state for controlling expansion
+    if 'heatmap_opened_once' not in st.session_state:
+        st.session_state.heatmap_opened_once = False
+    if 'heatmap_expanded_temp' not in st.session_state:
+        st.session_state.heatmap_expanded_temp = False
+
+    # If user has just interacted (e.g. selected a user), mark expander as opened
+    if st.session_state.heatmap_expanded_temp:
+        st.session_state.heatmap_opened_once = True
+
+    # Control expansion: expand only immediately after first interaction
+    with st.expander("Pushup Heatmap", expanded=not st.session_state.heatmap_opened_once):
+        # Set temp flag to True after the first render when it's interacted with
         display_pushup_heatmap(st.session_state.log_data)
+        st.session_state.heatmap_expanded_temp = True
 
     with st.expander ("Accumulated pushups by month and user"):
         display_monthly_accumulated_pushups(st.session_state.log_data, user_selection)
