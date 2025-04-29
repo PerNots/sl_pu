@@ -246,7 +246,7 @@ def display_accumulated_pushups(log_data, user_selection):
                 color_discrete_map=USER_COLORS,  # Use the USER_COLORS dictionary
                 labels={"Timestamp": "Time", "Accumulated Pushups": "Accumulated Pushups"}
             )
-            accumulated_chart.update_layout(height=900)  
+            accumulated_chart.update_layout(height=500)  
 
             # Show the chart in Streamlit
             st.plotly_chart(accumulated_chart, use_container_width=True)
@@ -1204,7 +1204,7 @@ if st.session_state['logged_in']:
         st.session_state.heatmap_opened_once = True
 
     # Control expansion: expand only immediately after first interaction
-    with st.expander("Pushup Heatmap", expanded=not st.session_state.heatmap_opened_once):
+    with st.expander("Pushup Heatmap", expanded=st.session_state.heatmap_opened_once):
         # Set temp flag to True after the first render when it's interacted with
         display_pushup_heatmap(st.session_state.log_data)
         st.session_state.heatmap_expanded_temp = True
